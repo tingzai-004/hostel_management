@@ -1,0 +1,22 @@
+<!-- D:\master3\management\hostel\templates\hostel\person_confirm_delete.html -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>确认删除</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <h3>确认删除</h3>
+        <p>你确定要删除人员 <strong>{{ object.name }}</strong> 吗？</p>
+        
+        <!-- 表单会提交到删除URL，执行删除操作 -->
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">确认删除</button>
+            <a href="{% url 'person_list' %}" class="btn btn-secondary">取消</a>
+        </form>
+    </div>
+</body>
+</html>

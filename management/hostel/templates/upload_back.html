@@ -1,0 +1,17 @@
+{% extends "moban.html"%}
+
+{% block content %}
+<form method="post" enctype="multipart/form-data" class="mb-5">
+    {%csrf_token%}
+    {{form.as_p}}
+    <button type="submit" class="btn btn-primary">上传</button>
+
+</form>
+
+{% if active_bg %}
+<label ><h1>当前使用的背景图</h1></label>
+<img src="{{active_bg.img.url}}" alt="" class="img-fluid" style="max-width: 400px;">
+
+{%endif%}
+
+{% endblock %}

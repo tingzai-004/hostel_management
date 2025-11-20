@@ -1,0 +1,13 @@
+
+{% extends "moban.html"%}
+{% load static%}
+{% block content %}
+<h1>个人中心</h1>
+<p>姓名：{{request.session.info.name}}</p>
+<p>是否超级管理员:{{request.session.info.is_super}}</p>
+
+
+<img src="media/" alt="" style="width: 400px;height: 350;">
+
+
+{% endblock %}

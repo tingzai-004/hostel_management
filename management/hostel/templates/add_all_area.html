@@ -1,0 +1,12 @@
+{% extends 'moban.html'%}
+{%block content%}
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="mb-3">
+        <label for="formFile" class="form-label">上传Excel文件</label>
+        <input type="text" class="form-control" name="name" placeholder="请输入批次名称" required>
+        <input type="file" name="file" style="margin-top: 20px;">
+    </div>
+    <button type="submit" class="btn-primary" style="margin-top:20px ;">提交信息</button>
+</form>
+{% endblock %}

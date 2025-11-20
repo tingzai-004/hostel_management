@@ -1,0 +1,25 @@
+
+{% extends 'moban.html' %}
+{% block content %}
+        <div class="card">
+  <h5 class="card-header">{{title}}</h5>
+  <div class="card-body">
+    <h5 class="card-title">{{title}}</h5>
+    <p class="card-text">
+       <form method="post" enctype="multipart/form-data">  <!-- 上传文件必须加enctype -->
+    {% csrf_token %}
+    {% for i in form %}
+        <div class="mb-3">
+            <label for="{{ i.id_for_label }}" class="form-label">{{ i.label }}</label>
+            {{ i }}  <!-- 渲染字段 -->
+            {% if i.errors %}
+                <div class="text-danger">{{ i.errors }}</div>
+            {% endif %}
+        </div>
+    {% endfor %}
+    <button type="submit" class="btn btn-primary" style="margin-top:20px;">提交信息</button>
+</form></p>
+    
+  </div>
+</div>
+{% endblock %}

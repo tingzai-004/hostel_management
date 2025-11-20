@@ -1,0 +1,236 @@
+{% extends 'moban.html' %}
+
+{% block content %}
+
+<body class="bg-light">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>宿舍费用统计报表</h2>
+    <h3></h3>
+
+    <!-- 新添加的父容器：负责将搜索框和按钮组整体靠右，并控制内部排列 -->
+    <div class="d-flex align-items-center ms-auto">
+        
+        <!-- 按钮组 -->
+        <div class="d-flex"> 
+            <a href="/peint2/" class="btn btn-sm btn-outline-secondary ms-2">
+                <i class="bi bi-download"></i> 导出Excel</a>
+            <a href="/hostel/fee_record/" class="btn btn-sm btn-outline-secondary ms-2">
+                <i class="bi bi-download"></i> 返回</a>
+        </div>
+
+        <!-- 搜索框：通过 ms-4 调整间距，添加 w-50 限制宽度 -->
+        <form method="get" action="/hostel/fee_record/" class="search-form ms-4 w-50">
+            <input type="text" name="q" placeholder="输入年份/日期..." class="form-control" value="{{ request.GET.q|default:'' }}">
+            <button type="submit" class="search-button btn btn-primary">
+                <i class="fas fa-search"></i>
+            </button>
+        </form>
+
+    </div>
+    <!-- 新添加的父容器结束 -->
+
+</div>
+
+        <!-- 筛选区域 -->
+        <form method="get">
+            <div class="bg-white p-3 rounded mb-4 shadow-sm">
+                <div class="filter-group d-flex flex-wrap">
+
+                    <!-- 月份筛选：name改为"month" -->
+                    <div class="col-md-2">
+                        <select class="form-select form-select-sm" name="current_month" id="month"
+                            onchange="this.form.submit()">
+                            <option value="">全部月份</option>
+                            <option value="2025年6月" {% if current_month == "2025年6月" %}selected{%endif%}>2025年6月</option>
+                            <option value="2025年7月" {% if current_month == "2025年7月" %}selected{%endif%}>2025年7月</option>
+                            <option value="2025年8月" {% if current_month == "2025年8月" %}selected{%endif%}>2025年8月</option>
+                            <option value="2025年9月" {% if current_month == "2025年9月" %}selected{%endif%}>2025年9月</option>
+                        </select>
+                    </div>
+
+                    <!-- 状态筛选：name改为"status"（保持唯一） -->
+                    <div class="col-md-2">
+                        <select class="form-select form-select-sm" name="current_status" id="status"
+                            onchange="this.form.submit()">
+                            <option value="">全部状态</option>
+                            <option value="1" {% if current_status == "1" %}selected{%endif%}>已缴费</option>
+                            <option value="0" {% if current_status == "0" %}selected{%endif%}>未缴费</option>
+                            <!-- 这里原先是2，改为0与后端一致 -->
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <select class="form-select form-select-sm" name="current_fee_type" id="feetype"
+                            onchange="this.form.submit()">
+                            <option value="">费用类型</option>
+                            <option value="1" {% if current_fee_type == "1" %}selected{%endif%}>空调费</option>
+                            <option value="2" {% if current_fee_type == "2" %}selected{%endif%}>房费</option>
+                            <option value="3" {% if current_fee_type == "3" %}selected{%endif%}>水费</option>
+                            <option value="4" {% if current_fee_type == "4" %}selected{%endif%}>电费</option>
+                            <!-- 这里原先是2，改为0与后端一致 -->
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </form>
+        <!-- 统计概览 -->
+        <div class="row mb-4">
+            <!-- 总费用 -->
+            <div class="col-md-3">
+                <div class="stats-card bg-white p-4 d-flexlex align-items-center">
+                    <i class="fa fa-calculator text-primary me-3" style="font-size: 32px;"></i>
+                    <div>
+                        <a href="/hostel/fee_record/" style="text-decoration: none;">
+                            <div class="text-muted small">总费用</div>
+                            <div class="h3 mt-1">{{total1}}</div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 已收费用 -->
+            <div class="col-md-3" style="margin-bottom: 10px;">
+                <div class="stats-card bg-white p-4 d-flex align-items-center">
+                    <i class="fa-solid fa-comments-dollar me-3" style="color: rgb(215, 215, 84);font-size: 32px;"></i>
+                    <div>
+                        <div class="text-muted small">已收费用</div>
+                        <div class="h3 mt-1">{{ total_count|floatformat:2 }}</div>
+                        <div class="text-success small">{{ rate }}%已收缴</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 未收费用 -->
+            <div class="col-md-3">
+                <div class="stats-card bg-white p-4 d-flex align-items-center">
+                    <i class="fa fa-money text-danger me-3" style="font-size: 32px;"></i>
+                    <div>
+                        <div class="text-muted small">未收费用</div>
+                        <div class="h3 mt-1">{{ total_not|floatformat:2 }}</div>
+                        <div class="text-danger small">{{rate_2}}% 未收缴</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 住宿人数 -->
+            <div class="col-md-3">
+                <div class="stats-card bg-white p-4 d-flex align-items-center">
+                    <i class="fa fa-users text-secondary me-3" style="font-size: 32px;"></i>
+                    <div>
+                        <div class="text-muted small">住宿人数</div>
+                        <div class="h3 mt-1">{{people}}</div>
+                        <div class="text-secondary small">{{room_sum}}个宿舍</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 总电费 -->
+            <div class="col-md-3" style="margin-top: 10px;">
+                <div class="stats-card bg-white p-4 d-flex align-items-center">
+                    <i class="fa fa-bolt text-warning me-3" style="font-size: 32px;"></i>
+                    <div>
+                        <div class="text-muted small">总电费</div>
+                        <div class="h3 mt-1">{{power}}</div>
+                        <div class="text-secondary small">{{room_sum}}个宿舍</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 总水费 -->
+            <div class="col-md-3">
+                <div class="stats-card bg-white p-4 d-flex align-items-center">
+                    <i class="fa fa-tint text-primary me-3" style="font-size: 32px;color: rgb(73, 192, 228);"></i>
+                    <div>
+                        <div class="text-muted small">总水费</div>
+                        <div class="h3 mt-1">{{water}}</div>
+                        <div class="text-secondary small">{{room_sum}}个宿舍</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 总房费 -->
+            <div class="col-md-3">
+                <div class="stats-card bg-white p-4 d-flex align-items-center">
+                    <i class="fa fa-home text-success me-3" style="font-size: 32px;"></i>
+                    <div>
+                        <div class="text-muted small">总房费</div>
+                        <div class="h3 mt-1">{{home}}</div>
+                        <div class="text-secondary small">{{room_sum}}个宿舍</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 总空调费 -->
+            <div class="col-md-3">
+                <div class="stats-card bg-white p-4 d-flex align-items-center">
+                    <i class="fa-solid fa-snowflake"
+                        style="margin-right:10px;color: rgb(115, 183, 219);font-size: 32px;"></i>
+                    <div>
+                        <div class="text-muted small">总空调费</div>
+                        <div class="h3 mt-1">{{cold}}</div>
+                        <div class="text-secondary small">{{room_sum}}个宿舍</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+
+        <!-- 详细数据表格 -->
+
+        <div class="bg-white p-3 rounded shadow-sm" style="margin-top:20px ;">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5>总电费</h5>
+                <div class="text-muted small">共{{paginator.count}}条记录</div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-sm table-hover">
+                    <thead class="table-light">
+
+                        <tr>
+
+                            <th>序号</th>
+                            <th>姓名</th>
+
+                            <th>费用细则</th>
+                            <th>个人分摊金额</th>
+                            <th>是否缴纳</th>
+                            <th>缴纳开始月份</th>
+                            <th>缴纳结束月份</th>
+
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for i in form %}
+                        <tr>
+                            <td>{{i.id}}</td>
+                            <td>{{i.occupancyrecord}}</td>
+                            <td>{{i.fee_record}}</td>
+
+                            <td>{{i.feesharings}}</td>
+                            <td>{{i.status}}</td>
+                            <td>{{i.start_date}}</td>
+                            <td>{{i.end_date}}</td>
+
+
+
+                            <td>
+                                {% if i.status == "1" %}
+                                <span class="badge bg-success">已缴费</span>
+                                {% else %}
+                                <span class="badge bg-danger">未缴费</span>
+                            </td>
+                            {% endif %}
+
+                            </td>
+
+
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+            </div>
+
+        </div>
+        {% endblock %}

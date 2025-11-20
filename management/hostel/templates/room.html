@@ -1,0 +1,117 @@
+{% extends 'moban.html' %}
+{% block content %}
+<div class="col-md-10">
+    <div class="content">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5>房间安排</h5>
+            <div>
+                <a href="/hostel/add_room/" class="btn btn-add me-2">新增</a>
+                <a href="/hostel/add_all_room/" class="btn btn-add">批量新增</a>
+                <button id="show_batch_delete" class="btn btn-danger">批量删除</button>
+               
+                
+            </div>
+        </div>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            
+            <form method="get" action="/hostel/room/" style="display: inline-flex; align-items: center;">
+                <input type="text" name="q" placeholder="输入可住查询空房间"
+                    style="border: 1px solid #ddd; padding: 6px 10px; border-radius: 4px; margin-right: 5px; outline: none;"
+                    value="{{ request.GET.q|default:'' }}">
+                <button type="submit"
+                    style="background-color: #6f7272; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer;">
+                    search
+                </button>
+            </form>
+        </div>
+        <!-- 表格 -->
+          <form method="post" action="/hostel/delete_all_room/" onsubmit="return confirm('确定要删除选中的人员吗？')">
+            {% csrf_token %}
+        <table class="table table-striped table-hover">
+            <thead>
+
+                <tr>
+                    <th><input type="checkbox" id="select_all" style="display: none;"> 全选</th>
+                    <th>序号</th>
+                    <th>房间号</th>
+                    <th>楼栋</th>
+                    <th>人数</th>
+                    <th>房间状态</th>
+                    <th>房间属性</th>
+                    <th>入住性别</th>
+                </tr>
+
+            </thead>
+            <tbody>
+                {% for i in c_page%}
+                <tr>
+                    <td><input type="checkbox" name="ids" value="{{ i.id }}" style="display: none;"></td>
+                    <td>{{i.id}}</td>
+
+                    <td>{{i.room_name}}</td>
+                    <td>{{i.dorm}}</td>
+                    <td>{{i.people}}</td>
+                    <td>{{i.room_status}}</td>
+                    <td>{{i.room_perpe}}</td>
+                    <td>{{i.gender}}</td>
+
+
+
+                    <td>
+                        <a href="/hostel/edit_room/{{i.id}}/" class="btn btn-edit btn-sm">编辑</a>
+                        <a href="/hostel/delete_room/{{i.id}}/?page={{c_page.number}}" class="btn btn-delete btn-sm ms-2">删除</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <button id="batch_delete_btn" class="btn btn-danger" style="display: none; margin-top: 10px;">批量删除选中</button>
+            <p style="margin-top: 20px;">请选择要删除的区域</p>
+        </form>
+    
+    <!-- 消息提示 -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} mt-3">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+        <!-- 分页 -->
+        <div class="d-flex justify-content-between align-items-center">
+    <div>显示{{ c_page.start_index }} 到 {{ c_page.end_index }} ,共{{paginator.count}}条记录</div>
+    <nav aria-label="Page navigation example">
+        <ul class="pagination">
+            <!-- 上一页 -->
+            <li class="page-item {% if not c_page.has_previous %}disabled{% endif %}">
+                <a class="page-link" href="{% if c_page.has_previous %}/hostel/room?page={{ c_page.previous_page_number }}{% else %}#{% endif %}">上一页</a>
+            </li>
+
+            <!-- 只显示当前页、第1页、最后1页（避免无效页） -->
+            
+
+            <!-- 中间只显示当前页（如果当前页不是1或最后1页） -->
+            {% if paginator.num_pages <= 3 %}
+                {% for num in paginator.page_range %}
+                    <li class="page-item {% if c_page.number == num %}active{% endif %}">
+                        <a class="page-link" href="/hostel/room?page={{ num }}">{{ num }}</a>
+                    </li>
+                {% endfor %}
+            {% else %}
+                <!-- 总页数>3时，只显示1、2、3 -->
+                {% for num in page_nums %}
+                    <li class="page-item {% if c_page.number == num %}active{% endif %}">
+                        <a class="page-link" href="/hostel/room?page={{ num }}">{{ num }}</a>
+                    </li>
+                {% endfor %}
+            {% endif %}
+
+            <!-- 下一页 -->
+            <li class="page-item {% if not c_page.has_next %}disabled{% endif %}">
+                <a class="page-link" href="{% if c_page.has_next %}/hostel/room?page={{ c_page.next_page_number }}{% else %}#{% endif %}">下一页</a>
+            </li>
+        </ul>
+    </nav>
+</div>
+{%endblock%}

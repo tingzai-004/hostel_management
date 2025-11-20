@@ -1,0 +1,73 @@
+{% load static %}  <!-- 顶部加载静态文件标签 -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>系统登录</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    /* 背景图样式 */
+    .login-bg {
+     
+      background: url("{% if active_bg %}{{active_bg.img.url}}{%else%}{% static 'image/图片.jpg' %}{%endif%}") no-repeat center center fixed;
+      background-size: cover;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    /* 登录卡片样式 */
+    .login-card {
+      background-color: rgba(255, 255, 255, 0.9);
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 400px;
+    }
+    /* 图标样式 */
+    .icon {
+      font-size: 2rem;
+      color: #007bff;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-bg">
+    <div class="login-card">
+      <div class="text-center mb-4">
+        <i class="bi bi-shield-lock icon"></i>
+        <h2 class="mb-3">系统登录</h2>
+      </div>
+      <form method="post" novalidate>
+        {% csrf_token %}
+        <div class="mb-3">
+          <label for="username" class="form-label">用户名</label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-person"></i></span>
+            {{ form.name }}
+            <span style="color: red;">{{ form.name.errors.0 }}</span>
+          </div>
+        </div>
+        <div class="mb-3">
+          <label for="password" class="form-label">密码</label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-lock"></i></span>
+            {{ form.password }}
+            <span style="color: red;">{{ form.password.errors.0 }}</span>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary w-100">登录</button>
+      </form>
+      <div class="text-center mt-3">
+        <a href="#" class="text-muted">忘记密码?</a>
+      </div>
+      
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.min.js"></script>
+</body>
+</html>

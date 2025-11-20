@@ -1,0 +1,57 @@
+<!-- simple_card/templates/simple_card/room_type.html -->
+{% extends 'moban.html'%}
+{% block content %}
+    
+
+    <h1>房间类型管理</h1>
+
+    <!-- 表单区域：添加新房间类型 -->
+    <div class="form-container">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-success">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+            <input type="text" name="type_name" placeholder="输入房间类型（如：单人间、双人间）" required>
+            <input type="text" name="bed_count" placeholder="床位数量" required>
+            <button type="submit">添加房间类型</button><a href="/hostel/statusUI/"class="custom-btn">返回</a>
+        </form>
+    </div>
+
+    <!-- 房间类型展示区域 -->
+    <h2>已定义的房间类型:</h2>
+    <div class="stat-card stat-repair">
+    
+        {% for room_type in room_types %}
+    {% if room_type.bed_count == 2 %}
+        <div class="stat-icon" style="color: #2ecc71; font-size: 24px; margin-top: 10px;">
+            <i class="fa-solid fa-user-group" aria-hidden="true"></i>
+        </div>
+    {% elif room_type.bed_count == 3 %}
+        <div class="stat-icon" style="color: #e67e22; font-size: 24px; margin-top: 10px;">
+            <i class="fa-solid fa-people-group" aria-hidden="true"></i>
+        </div>
+    {% elif room_type.bed_count == 6 %}
+        <div class="stat-icon" style="color: #3498db; font-size: 24px; margin-top: 10px;">
+            <i class="fa-solid fa-users" aria-hidden="true"></i>
+        </div>
+    {% else %}
+        <div class="stat-icon" style="color: #9b59b6; font-size: 24px; margin-top: 10px;">
+            <i class="fa-solid fa-users" aria-hidden="true"></i>
+        </div>
+    {% endif %}
+    <!-- 下面的房间类型卡片循环保持不变 -->
+    <div class="room-type-card">
+        <h3>{{ room_type.name }}</h3>
+        <p>床位数量: {{ room_type.bed_count }}</p>
+    </div>
+{% empty %}
+    <p>还没有定义房间类型，快添加一个吧！</p>
+{% endfor %}
+    </div>
+</div>
+
+{% endblock %}

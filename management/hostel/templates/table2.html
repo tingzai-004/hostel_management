@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>区域列表</title>
+  <style>
+    .btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .delete-btn {
+      background-color: #dc3545;
+      color: white;
+    }
+    .edit-btn {
+      background-color: #007bff;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <h3>区域列表</h3>
+  <div style="text-align: right; margin-bottom: 10px;">
+    <button class="btn" style="background-color: #00bcd4; color: white;">新增</button>
+    <button class="btn" style="background-color: #00bcd4; color: white;">批量上传</button>
+    <button id="show_batch_delete" class="btn delete-btn">批量删除</button>
+    <input type="text" placeholder="输入区域名称查询" style="margin-left: 10px;">
+    <button class="btn" style="background-color: #6c757d; color: white;">search</button>
+  </div>
+
+  <table border="1" width="100%">
+    <thead>
+      <tr>
+        <th><input type="checkbox" id="select_all" style="display: none;"> 全选</th>
+        <th>序号</th>
+        <th>区域</th>
+        <th>操作</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><input type="checkbox" name="ids" value="3" style="display: none;"></td>
+        <td>3</td>
+        <td>南朗</td>
+        <td>
+          <button class="btn edit-btn">编辑</button>
+          <button class="btn delete-btn">删除</button>
+        </td>
+      </tr>
+      <tr>
+        <td><input type="checkbox" name="ids" value="4" style="display: none;"></td>
+        <td>4</td>
+        <td>科学园</td>
+        <td>
+          <button class="btn edit-btn">编辑</button>
+          <button class="btn delete-btn">删除</button>
+        </td>
+      </tr>
+      <tr>
+        <td><input type="checkbox" name="ids" value="6" style="display: none;"></td>
+        <td>6</td>
+        <td>石歧</td>
+        <td>
+          <button class="btn edit-btn">编辑</button>
+          <button class="btn delete-btn">删除</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <button id="batch_delete_btn" class="btn delete-btn" style="display: none; margin-top: 10px;">批量删除选中</button>
+  <p style="margin-top: 20px;">请选择要删除的人员</p>
+
+  <script>
+    const showBtn = document.getElementById('show_batch_delete');
+    const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+    const batchDeleteBtn = document.getElementById('batch_delete_btn');
+
+    showBtn.onclick = function() {
+      const isHidden = checkboxes[0].style.display === 'none';
+      if (isHidden) {
+        checkboxes.forEach(box => box.style.display = 'inline-block');
+        batchDeleteBtn.style.display = 'inline-block';
+        showBtn.textContent = '取消批量删除';
+      } else {
+        checkboxes.forEach(box => box.style.display = 'none');
+        batchDeleteBtn.style.display = 'none';
+        showBtn.textContent = '批量删除';
+      }
+    };
+
+    document.getElementById('select_all').onchange = function() {
+      const itemCheckboxes = document.querySelectorAll('input[name="ids"]');
+      itemCheckboxes.forEach(box => box.checked = this.checked);
+    };
+  </script>
+</body>
+</html>

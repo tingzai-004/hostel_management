@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>分页</title>
+</head>
+<body>
+    {% for i in c_page%}
+    {{i}}
+    {%endfor%}
+    {% if c_page.has_previous %}
+    <a href="/test_page?pag={{c_page.previous_page_number}}">上一页</a>
+    {%else%}
+    上一页
+    {%endif%}
+{%for p_num in paginator.page_range %}
+{% if p_num == c_page.number %}
+{{p_num}}
+{%else%}
+<a href="/test_page?page = {{p_num}}">{{p_num}}</a>
+{%endif%}
+{%endfor%}
+
+    {%if c_page.has_next%}
+    <a href="/test_page?page = {{c_page.next_page_number}}">下一页</a>
+    {%else%}
+    下一页
+    {%endif%}
+</body>
+</html>

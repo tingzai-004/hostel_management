@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <form action="/abc/" method="post">
+        {%csrf_token%}
+        {% for i in form %}
+        <label for="">{{i.label}}</label>
+        {{i}}
+        {% endfor %}
+        {% if form._non_errors%}
+        {% for i in form._non_errors%}
+        {{i}}
+        {%endfor%}
+        {%endif%}
+    </form>
+    <form action="">
+        <input type="text",placeholder="请输入",name="q">
+        <button type="submit">
+            search
+        </button>
+    </form>
+<table>
+    <tr>
+        <th>1</th>
+        <th>2</th>
+        <th>3</th>
+    </tr>
+
+    <td>1</td>
+    <td>1</td>
+    <td>1</td>
+    
+        <th>123</th>
+        <th>1</th>
+        <th>1</th>
+    
+</table></body>
+</html>
