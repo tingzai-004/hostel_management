@@ -1,0 +1,54 @@
+{% extends 'moban.html' %}
+{% block content %}
+        <div class="card">
+  <h5 class="card-header">{{titel}}</h5>
+  <div class="card-body">
+    <h5 class="card-title"></h5>
+    <p class="card-text">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} mt-3">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+
+        <form method="post">
+            {% csrf_token %}
+             {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                    {% for error in form.non_field_errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+                {% endif %}
+            {% for i in form %}
+                <div class="mb-3">
+                    <label for="{{i.id_for_label}}" class="form-label">{{i.label}}</label>
+                    
+                    {{i}}
+                    {% if i.errors %}
+                        <div class="text-danger">
+                            {{ i.errors }}
+                        </div>
+                    {% endif %}
+            {%endfor%}
+            {% if field.errors %}
+                    <div class="text-danger">  <!-- 修正颜色写法 -->
+                        {% for error in field.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+           <button type="submit"  class="btn-submit-mini" style="text-decoration: none;">
+    <i class="fas fa-paper-plane"></i>提交信息</button>
+           <a href="/hostel/assetcategory/" class="btn-submit-mini" style="text-decoration: none;">
+                            <i class="fas fa-arrow-left"></i>返回</a>
+           
+        </form></p>
+    
+  </div>
+</div>
+{% endblock %}
+   

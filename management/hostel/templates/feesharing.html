@@ -1,15 +1,14 @@
 {% extends 'moban.html' %}
+{% load dict_filters%}
 
 {% block content %}
 <div class="col-md-10">
     <div class="content">
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5>{{titel}}</h5>
+            <h5>个人分摊管理</h5>
             <div>
-                <a href="/peint/" class="btn btn-sm btn-outline-secondary ms-2">
-                    <i class="bi bi-download"></i> 导出Excel</a>
-                <a href="/hostel/add_feesharing/" class="btn btn-add me-2">新增</a>
-                <a href="/hostel/add_all_feesharing/" class="btn btn-add">批量上传</a>
+                
+               
                 <button id="show_batch_delete" class="btn btn-danger">批量删除</button>
 
 
@@ -19,7 +18,7 @@
         <div class="d-flex justify-content-between align-items-center mb-3">
 
             <form method="get" action="/hostel/feesharing/" style="display: inline-flex; align-items: center;">
-                <input type="text" name="q" placeholder="输入房间号查询"
+                <input type="text" name="q" placeholder="输入姓名。。"
                     style="border: 1px solid #ddd; padding: 6px 10px; border-radius: 4px; margin-right: 5px; outline: none;"
                     value="{{ request.GET.q|default:'' }}">
                 <button type="submit"
@@ -31,45 +30,48 @@
         <!-- 表格 -->
         <form method="post" action="/hostel/del_all_feesharing/" onsubmit="return confirm('确定要删除选中的人员吗？')">
             {% csrf_token %}
-            <table class="table table-striped table-hover">
-                <thead>
+           <table class="table table-striped">
+    <thead>
+        <tr>
+            <th><input type="checkbox" id="select_all" style="display: none;"> 全选</th>
+            <th>姓名</th>
+            <th>房间</th>
+            <th>房费</th>
+            <th>月份</th>
+            {% for fee in active_fees %}
+                <th>{{ fee.name }}</th>
+            {% endfor %}
+            <th><strong>个人总计</strong></th>
+            <th>课题组补贴</th>
+            <th>院补贴</th>
+            <th>操作</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for s in c_page %}
+        <tr>
+            <td><input type="checkbox" name="ids" value="{{ s.id }}" style="display: none;"></td>
+            <td>{{ s.user.user.name }}</td>
+            <td>{{ s.user.room }}</td>
+            <td>{{s.room_fee}}</td>
+            <td>{{ s.fee_record.date|date:"Y-m" }}</td>
+            {% for fee in active_fees %}
+                <td>{{ s.details|get_item:fee.name|floatformat:2 }}元</td>
+            {% endfor %}
+            <td><strong>{{ s.total }}元</strong></td>
+            <td>{{s.yuan_money}}元</td>
+            <td>{{s.ketizu_money}}</td>
+            <td>
+                                     <a href="/hostel/edit_feesharing/{{s.id}}/"class="btn btn-edit btn-sm">编辑</a>
+                                    <a href="/hostel/del_feesharing/{{s.id}}/" class="btn btn-delete btn-sm ms-2">删除</a>
+                                </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="10">暂无分摊记录（生成费用记录后自动出现）</td></tr>
 
-                    <tr>
-                        <th><input type="checkbox" id="select_all" style="display: none;"> 全选</th>
-                        <th>序号</th>
-
-                        <th>姓名</th>
-                       
-                        <th>费用金额</th>
-                        <th>个人分摊金额</th>
-                        <th>缴纳状态</th>
-                        <th>开始计费时间</th>
-                        <th>结束计费时间</th>
-                    </tr>
-
-                </thead>
-                <tbody>
-                    {% for i in c_page%}
-                    <tr>
-                        <td><input type="checkbox" name="ids" value="{{ i.id }}" style="display: none;"></td>
-                        <td>{{i.id}}</td>
-
-                        <td>{{i.occupancyrecord}}</td>
-                        
-                        <td>{{i.fee_record}}</td>
-                        <td>{{i.feesharings}}</td>
-                        <td>{{i.status}}</td>
-                        <td>{{i.start_date}}</td>
-                        <td>{{i.end_date}}</td>
-
-                        <td>
-                            <a href="/hostel/edit_feesharing/{{i.id}}/" class="btn btn-edit btn-sm">编辑</a>
-                            <a href="/hostel/del_feesharing/{{i.id}}/" class="btn btn-delete btn-sm ms-2">删除</a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+        {% endfor %}
+    </tbody>
+</table>
             <button id="batch_delete_btn" class="btn btn-danger" style="display: none; margin-top: 10px;">批量删除选中</button>
             <p style="margin-top: 20px;">请选择要删除的区域</p>
         </form>
@@ -84,7 +86,7 @@
     {% endif %}
 
             <!-- 分页 -->
-             <div class="d-flex justify-content-between align-items-center">
+            <div class="d-flex justify-content-between align-items-center">
     <div>显示{{ c_page.start_index }} 到 {{ c_page.end_index }} ,共{{paginator.count}}条记录</div>
     <nav aria-label="Page navigation example">
         <ul class="pagination">
@@ -94,23 +96,13 @@
             </li>
 
             <!-- 只显示当前页、第1页、最后1页（避免无效页） -->
-           
-
+            
             <!-- 中间只显示当前页（如果当前页不是1或最后1页） -->
-            {% if paginator.num_pages <= 3 %}
-                {% for num in paginator.page_range %}
-                    <li class="page-item {% if c_page.number == num %}active{% endif %}">
-                        <a class="page-link" href="/hostel/feesharing?page={{ num }}">{{ num }}</a>
-                    </li>
-                {% endfor %}
-            {% else %}
-                <!-- 总页数>3时，只显示1、2、3 -->
-                {% for num in page_nums %}
-                    <li class="page-item {% if c_page.number == num %}active{% endif %}">
-                        <a class="page-link" href="/hostel/feesharing?page={{ num }}">{{ num }}</a>
-                    </li>
-                {% endfor %}
-            {% endif %}
+            {% for num in display_pages %}
+        <li class="page-item {% if c_page.number == num %}active{% endif %}">
+            <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+        </li>
+    {% endfor %}
 
             <!-- 下一页 -->
             <li class="page-item {% if not c_page.has_next %}disabled{% endif %}">

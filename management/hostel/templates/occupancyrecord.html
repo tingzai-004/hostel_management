@@ -5,7 +5,8 @@
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h5>住宿记录列表</h5>
             <div>
-                <a href="/hostel/add_occupancyrecord/"class="custom-btn">入住</a>
+                <a href="/hostel/add_occupancyrecord/" class="btn-submit-mini" style="text-decoration: none;">
+    <i class="fas fa-paper-plane"></i>入住</a>
                 
 
                 <a href="/hostel/add_all_occupancyrecord/" class="btn btn-add me-2">批量新增</a>
@@ -48,6 +49,7 @@
                     <th>入住时间</th>
                     
                     <th>状态(0为正常入住)</th>
+                    <th>是否有优惠</th>
 
                     <th>操作</th>
                 </tr>
@@ -70,6 +72,12 @@
                     <td>{{i.check_in_date}}</td>
                     
                     <td>{{i.status}}</td>
+                    {% if i.discount %}
+   <td> <span style="color:green;font-weight:bold;">有优惠</span></td>
+{% else %}
+    <td><span style="color:red;font-weight:bold;">未优惠</span></td>
+{% endif %}
+                   
                     <td>
                         <a href="/hostel/edit_occupancyrecord/{{i.id}}/" class="btn btn-edit btn-sm">编辑</a>
                         <a href="/hostel/delete_occupancyrecord/{{i.id}}/?page={{c_page.number}}"

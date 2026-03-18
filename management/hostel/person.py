@@ -37,29 +37,29 @@ logger=logging.getLogger('management')
 class personmodel(BootStrapModelForm):
     class Meta:
         model=models.Person
-        fields=['name','depart','room','gender','phone','userstatus','personne','permission',"password"]
-    def clean(self):
-        """自定义验证：检查房间是否已满"""
-        cleaned_data = super().clean()##什么意思？
-        room = cleaned_data.get('room')
+        fields=['name','depart','gender','phone','userstatus','personne','permission',"password"]
+    # def clean(self):
+    #     """自定义验证：检查房间是否已满"""
+    #     cleaned_data = super().clean()##什么意思？
+    #     room = cleaned_data.get('room')
         
-        if not room:
-            return cleaned_data  # 房间未选择时不验证
+    #     if not room:
+    #         return cleaned_data  # 房间未选择时不验证
         
-        # 提取额定人数（从 room_perpe 如"6R"中提取数字）
-        try:
-            rated_people = int(''.join(filter(str.isdigit, room.room_perpe)))
-        except:
-            raise forms.ValidationError(f"房间{room.room_name}属性格式错误（应为类似'6R'）")
+    #     # 提取额定人数（从 room_perpe 如"6R"中提取数字）
+    #     try:
+    #         rated_people = int(''.join(filter(str.isdigit, room.room_perpe)))
+    #     except:
+    #         raise forms.ValidationError(f"房间{room.room_name}属性格式错误（应为类似'6R'）")
         
-        # 计算当前入住人数
-        current_people =models.Person.objects.filter(room=room).count()
+    #     # 计算当前入住人数
+    #     current_people =models.Person.objects.filter(room=room).count()
         
-        # 检查是否超员（如果是新增，当前人数+1是否超过额定）
-        if current_people >= rated_people:
-            raise forms.ValidationError(f"房间{room.room_name}已住满（额定{rated_people}人）")
+    #     # 检查是否超员（如果是新增，当前人数+1是否超过额定）
+    #     if current_people >= rated_people:
+    #         raise forms.ValidationError(f"房间{room.room_name}已住满（额定{rated_people}人）")
         
-        return cleaned_data
+    #     return cleaned_data
         
 def person(request):
     search_data = request.GET.get('q', '')
@@ -93,35 +93,36 @@ def person(request):
     })
 
 class addpersonmodel(BootStrapModelForm):
+    bootstrap_exclude=["money"]
     class Meta:
         model=models.Person
-        fields=['name','depart','room','gender','phone','userstatus','personne','permission',"password"]
+        fields=['name','depart','gender','phone','userstatus','personne','permission',"password"]
     def password_clean(self):
         pwd=self.cleaned_data.get("password")
         pwd=md5(pwd)  
         return pwd
-    def clean(self):
-        """自定义验证：检查房间是否已满"""
-        cleaned_data = super().clean()##什么意思？
-        room = cleaned_data.get('room')
+    # def clean(self):
+    #     """自定义验证：检查房间是否已满"""
+    #     cleaned_data = super().clean()##什么意思？
+    #     room = cleaned_data.get('room')
         
-        if not room:
-            return cleaned_data  # 房间未选择时不验证
+    #     if not room:
+    #         return cleaned_data  # 房间未选择时不验证
         
-        # 提取额定人数（从 room_perpe 如"6R"中提取数字）
-        try:
-            rated_people = room.room_type.bed_count
-        except:
-            raise forms.ValidationError(f"房间{room.room_name}属性格式错误（应为类似'6R'）")
+    #     # 提取额定人数（从 room_perpe 如"6R"中提取数字）
+    #     try:
+    #         rated_people = room.room_type.bed_count
+    #     except:
+    #         raise forms.ValidationError(f"房间{room.room_name}属性格式错误（应为类似'6R'）")
         
-        # 计算当前入住人数
-        current_people =models.Person.objects.filter(room=room).count()
+    #     # 计算当前入住人数
+    #     current_people =models.Person.objects.filter(room=room).count()
         
-        # 检查是否超员（如果是新增，当前人数+1是否超过额定）
-        if current_people >= rated_people:
-            raise forms.ValidationError(f"房间{room.room_name}已住满（额定{rated_people}人）")
+    #     # 检查是否超员（如果是新增，当前人数+1是否超过额定）
+    #     if current_people >= rated_people:
+    #         raise forms.ValidationError(f"房间{room.room_name}已住满（额定{rated_people}人）")
         
-        return cleaned_data      
+    #     return cleaned_data      
 
     
    
@@ -133,28 +134,31 @@ def add_person(request):
     form=addpersonmodel(data=request.POST)
     if form.is_valid():
         # 保存前先检查房间是否已满（Form的clean方法已验证，但需同步更新房间状态）
-        new_person = form.save()
-        room = new_person.room
+        form.save()
+        return redirect("/hostel/person/")
+    return render(request,"add_area.html",{'form':form,"error":form.errors,"titel":"添加人员信息"})
+    #     new_person = form.save()
+    #     room = new_person.room
         
-        # 计算当前房间人数
-        rated_people =room.room_type.bed_count
-        current_people =models. Person.objects.filter(room=room).count()
+    #     # 计算当前房间人数
+    #     rated_people =room.room_type.bed_count
+    #     current_people =models. Person.objects.filter(room=room).count()
         
-        # 更新房间人数和状态
-        room.people = current_people
-        if current_people >= rated_people:
-            full_status = models.room_status.objects.get(name="住满")
-            room.room_status = full_status
-            messages.success(request, f"添加成功！房间{room.room_name}已住满")
-        else:
-            messages.success(request, f"添加成功！房间当前{current_people}/{rated_people}人")
-        logger.info(f"{request.session.get('info',{}).get('name')}添加了一条人员记录")
-        room.save()
-        return redirect("/hostel/person/")  # 跳转到人员列表页（避免重复提交）
-    else:
-        # 表单验证失败（含房间已满的错误），将错误传递到模板
-        messages.error(request, "表单验证失败或房间人数已满")
-        return render(request, "add_area.html", {"form": form, "error": form.errors, "titel": "添加人员信息"})
+    #     # 更新房间人数和状态
+    #     room.people = current_people
+    #     if current_people >= rated_people:
+    #         full_status = models.room_status.objects.get(name="住满")
+    #         room.room_status = full_status
+    #         messages.success(request, f"添加成功！房间{room.room_name}已住满")
+    #     else:
+    #         messages.success(request, f"添加成功！房间当前{current_people}/{rated_people}人")
+    #     logger.info(f"{request.session.get('info',{}).get('name')}添加了一条人员记录")
+    #     room.save()
+    #     return redirect("/hostel/person/")  # 跳转到人员列表页（避免重复提交）
+    # else:
+    #     # 表单验证失败（含房间已满的错误），将错误传递到模板
+    #     messages.error(request, "表单验证失败或房间人数已满")
+    #     return render(request, "add_area.html", {"form": form, "error": form.errors, "titel": "添加人员信息"})
 
 ##删除更新
 def delete_person(request,id):
@@ -168,28 +172,33 @@ def delete_person(request,id):
     person = models.Person.objects.filter(id=id).first()
     if not person:
         return HttpResponse("找不到数据")
-    room=person.room
-    room_name=room.room_name
+    # room=person.room
+    # room_name=room.room_name
+    try:
+        person.delete()
+        logger.info(f"{request.session.get('info',{}).get('name')}删除了一条人员记录")
+        messages.success(request,"删除成功")
+        return redirect(f"/hostel/person?page={page_num}")
+    except Exception as e:
+        messages.error(request,"删除失败，错误信息：{}".format(e))
 
-    person.delete()
-
-    room_person=models.Person.objects.filter(room=room).aggregate(total=Count("id"))["total"] or 0
-    rated_people = room.room_type.bed_count
-    # records=models.fee_record.objects.get(room=room)
-    # sharing=round(records.amount/room_person,2) if room_person>0 else 0
+    # room_person=models.Person.objects.filter(room=room).aggregate(total=Count("id"))["total"] or 0
+    # rated_people = room.room_type.bed_count
+    # # records=models.fee_record.objects.get(room=room)
+    # # sharing=round(records.amount/room_person,2) if room_person>0 else 0
     
-    room.people=room_person
+    # room.people=room_person
 
-    if room_person>=rated_people:
-        full_status=models.room_status.objects.get(name="住满")
-        room.room_status=full_status
-        messages.success(request,f"删除成功，但{room_name}仍住满")
-    else:
-        not_status=models.room_status.objects.get(name="可住")
-        room.room_status=not_status
-        messages.success(request,f"删除成功，{room_name}剩余{room_person}/{rated_people}")
-    logger.info(f"{request.session.get('info',{}).get('name')}删除了一条人员记录")
-    room.save()
+    # if room_person>=rated_people:
+    #     full_status=models.room_status.objects.get(name="住满")
+    #     room.room_status=full_status
+    #     messages.success(request,f"删除成功，但{room_name}仍住满")
+    # else:
+    #     not_status=models.room_status.objects.get(name="可住")
+    #     room.room_status=not_status
+    #     messages.success(request,f"删除成功，{room_name}剩余{room_person}/{rated_people}")
+    # logger.info(f"{request.session.get('info',{}).get('name')}删除了一条人员记录")
+    # room.save()
 
     
     return redirect(f"/hostel/person/?page={page_num}")
@@ -364,9 +373,10 @@ def delete_all_person(request):
     return redirect('/hostel/person/')
 #住宿记录
 class occupancyrecordmodel(BootStrapModelForm):
+    bootstrap_exclude=["discount"]
     class Meta:
         model=models.occupancyrecord
-        fields=['user','room','check_in_date','status'] 
+        fields=['user','room','check_in_date','status','discount',"date_limit"] 
     def clean(self):
         """自定义验证：检查房间是否已满"""
         cleaned_data = super().clean()##什么意思？
@@ -377,12 +387,12 @@ class occupancyrecordmodel(BootStrapModelForm):
         
         # 提取额定人数（从 room_perpe 如"6R"中提取数字）
         try:
-            rated_people = int(''.join(filter(str.isdigit, room.room_perpe)))
+            rated_people =room.room_type.bed_count
         except:
             raise forms.ValidationError(f"房间{room.room_name}属性格式错误（应为类似'6R'）")
         
         # 计算当前入住人数
-        current_people =models.occupancyrecord.objects.filter(room=room).count()
+        current_people =models.occupancyrecord.objects.filter(room=room,status=0).count()
         
         # 检查是否超员（如果是新增，当前人数+1是否超过额定）
         if current_people >= rated_people:
@@ -443,17 +453,21 @@ def add_occupancyrecord(request):
         new_record = form.save()
         room = new_record.room
         current_people = models.occupancyrecord.objects.filter(room=room, status="0").count()
-        
+        person=models.Person.objects.get(id=user_id)
+        person.room=room
+        person.save()
         # 更新房间信息
         room.people = current_people
-        relate_people=int("".join(filter(str.isdigit,room.room_perpe)))
+        relate_people=room.room_type.bed_count
+        print("relate_people",relate_people)
         # 假设 room_perpe 是一个整数字段
+        
         if current_people >= relate_people:
             full_status = models.room_status.objects.get(name="住满")
             room.room_status = full_status
             messages.success(request, f"添加成功！房间 {room.room_name} 已住满。")
         else:
-            messages.success(request, f"添加成功！房间 {room.room_name} 当前 {current_people}/{room.room_perpe} 人。") 
+            messages.success(request, f"添加成功！房间 {room.room_name} 当前 {current_people}/{room.room_type.bed_count} 人。") 
         logger.info(f"{request.session.get('info', {}).get('name')} 添加了一条入住记录 (员工: {user_id} - {person_instance.name}, 房间: {room.room_name})")
         room.save()
         return redirect("/hostel/occupancyrecord/")
@@ -476,7 +490,7 @@ def delete_occupancyrecord(request,id):
     person.delete()
 
     room_person=models.occupancyrecord.objects.filter(room=room).aggregate(total=Count("id"))["total"] or 0
-    rated_people = int(''.join(filter(str.isdigit, room.room_perpe))) 
+    rated_people = room.room_type.bed_count
 
     room.people=room_person
 
@@ -623,18 +637,15 @@ def delete_all_occupancyrecord(request):
         if not ids:
             messages.error(request, "请选择要删除的人员")
             return redirect('/hostel/occupancyrecord/')
-        
-        try:
-            # 批量删除选中的记录
-            models.occupancyrecord.objects.filter(id__in=ids).delete()
-            messages.success(request, f"成功删除 {len(ids)} 条人员记录")
-        except Exception as e:
-            messages.error(request, f"删除失败：{str(e)}")
-        
+        deleted_count, _ = models.occupancyrecord.objects.filter(id__in=ids).delete()
+        logger.info(f"{request.session.get('info', {}).get('name')}批量删除 {deleted_count} 条入住记录")
+        messages.success(request, f"成功删除 {deleted_count} 条入住记录")   
         return redirect('/hostel/occupancyrecord/')
-    
-    # 非POST请求直接跳转回列表页
-    return redirect('/hoestle/occupanctrecord/')
+    else:
+        return HttpResponse("方法不允许")
+
+        
+        
 
 class depmodel(BootStrapModelForm):
     class Meta:
@@ -672,11 +683,11 @@ def add_dep(request):
         return render(request,"add_area.html",{"form":form,'titel':"添加部门"})
     form=depmodel(data=request.POST)
     if form.is_valid():
-        data=request.session.get('info')
-        if data==None:
-            return HttpResponse("请先登录")
-        name=data.get('name')
-        logger.info('%s添加了部门'%(name))
+        # data=request.session.get('info')
+        # if data==None:
+        #     return HttpResponse("请先登录")
+        # name=data.get('name')
+        # logger.info('%s添加了部门'%(name))
         form.save()
         return redirect("/hostel/dep/")
     return render(request,"add_area.html",{"form":form,"error":form.errors,'titel':"添加部门"})
@@ -844,5 +855,19 @@ def del_permission(request,id):
     logger.info(f"{name}删除了一条权限列表信息")
     row_obj.delete()
     return redirect(f"/hostel/permission/?page={page_num}")
+
+def edit_permission(request,id):
+    row_obj=models.Permission.objects.filter(id=id).first()
+    if not row_obj:
+        return HttpResponse("数据不存在")
+    if request.method=="GET":
+        form=permissionmodel(instance=row_obj)
+        return render(request,"add_area.html",{"form":form,'titel':"编辑权限列表"})
+    form=permissionmodel(data=request.POST,instance=row_obj)
+    if form.is_valid():
+        form.save()
+        return redirect("/hostel/permission/")
+    return render(request,"add_area.html",{"form":form,"titel":"编辑权限列表"})
+
 
 

@@ -17,7 +17,8 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from django.urls import include
-from hostel import views,person,paginator,fee,login,status,part,print,a,b,admin_list,user2,check_out,room_type
+from hostel import views,person,paginator,fee,login,status,part,print,a,b,admin_list,user2,check_out,room_type,discount,resourece
+from hostel import hostel_assert
 from django.urls import re_path
 from django.views.static import serve
 from django.conf import settings
@@ -85,19 +86,20 @@ urlpatterns = [
     path('test_page/',paginator.test_page),
     path('hostel/add_permission/',person.add_permission),
     path('hostel/del_permission/<int:id>/',person.del_permission),
+    path('hostel/edit_permission/<int:id>/',person.edit_permission),
 
     ##费用类型
-    path('hostel/fee_type/',fee.feetype),
+    path('hostel/fee_type/',fee.fee_type),
     path('hostel/add_feetype/',fee.add_feetype),
     path('hostel/delete_feetype/<int:id>/',fee.del_feetype),
     path('hostel/edit_feetype/<int:id>/',fee.edit_feetype),   
      
     #费用分摊
-    path('hostel/feesharing/',fee.feesharing),
+    path('hostel/feesharing/',fee.sharing),
     path("hostel/del_all_feesharing/",fee.del_all_feesharing),
   
     path('hostel/add_all_feesharing/',fee.add_all_feesharing),
-    path('hostel/add_feesharing/',fee.add_feesharing),
+    # path('hostel/add_feesharing/',fee.add_feesharing),
     path('hostel/edit_feesharing/<int:id>/',fee.edit_feesharing),
     path('hostel/del_feesharing/<int:id>/',fee.del_feesharing),
    
@@ -108,19 +110,16 @@ urlpatterns = [
     path('hostel/edit_fee_record/<int:id>/',fee.edit_fee_record),
     path("hostel/add_all_fee_record/",fee.add_all_fee_record),
     path("hostel/delete_all_fee_record/",fee.delete_all_fee_record),
-    #计费标准
-    path('hostel/standard/',fee.standard),
-    path('hostel/add_standard/',fee.add_standard),
-    path('hostel/del_standard/<int:id>/',fee.del_standard),
-    path('hostel/edit_standard/<int:id>/',fee.edit_standard),
+   
+
 
     #资源使用量
-    path("hostel/resource_useage/",fee.resource_useage),
-    path("hostel/add_resource/",fee.add_resource),
-    path("hostel/del_resource/<int:id>/",fee.del_resource),
-    path("hostel/edit_resource/<int:id>/",fee.edit_resource),
-    path('hostel/add_all_resource/',fee.add_all_resource),
-    path('hostel/delete_all_resource/',fee.delete_all_resource),
+    path("hostel/resource_useage/",resourece.resource_useage_list),
+    path("hostel/add_resource/",resourece.add_resource),
+    path("hostel/del_resource/<int:id>/",resourece.del_resource),
+    path("hostel/edit_resource/<int:id>/",resourece.edit_resource),
+    # path('hostel/add_all_resource/',resourece.add_all_resource),
+    # path('hostel/delete_all_resource/',resourece.delete_all_resource),
 
     #登录
     path('login/',login.admin_login,name="login"),
@@ -145,8 +144,8 @@ urlpatterns = [
     ##
     path("upload_back/",a.upload_back),
     ##个人中心
-    path("upload_a_img/",b.upload_a_img),
-    path("user_img/",b.user_img),
+    # path("upload_a_img/",b.upload_a_img),
+    # path("user_img/",b.user_img),
     ##管理员liebiao
     path("admin_list/",admin_list.admin_list),
     path('add_admin/',admin_list.add_admin),
@@ -157,8 +156,39 @@ urlpatterns = [
     path('miao/',user2.miao),
     path("user/logout/",user2.logout),
     path("user/reset/",user2.user_reset),
-    path('add_room_type/', room_type.room_type_view, name='room_type_view'),
+    path("add_money/",a.money_upload),
+    ##房型
+    path('add_room_type/', room_type.add_room_type, name='room_type_view'),
+    path('hostel/room_type/',room_type.room_type),
+    path('hostel/delete_room_type/<int:id>/',room_type.delete_room_type),
+    path('hostel/delete_all_room_type/',room_type.delete_all_room_type),
+    path('hostel/edit_room_type/<int:id>/',room_type.edit_room_type),
+    ##折扣
+    path('hostel/discount/',discount.discount_views),
+    path('hostel/delete_discount/<int:id>/',discount.delete_discount),
+    path('hostel/edit_discount/<int:id>/',discount.edit_discount),
+    path('hostel/add_discount/',discount.add_discount),
+    path('hostel/del_all_discount/',discount.del_all_discount),
+    ##资产类别
+    path('hostel/assetcategory/',hostel_assert.assetcategory_view),
+    path('hostel/add_assetcategory/',hostel_assert.add_assetcategory),
+    path('hostel/delete_assetcategory/<int:id>/',hostel_assert.delete_assetcategory),
+    path('hostel/edit_assetcategory/<int:id>/',hostel_assert.edit_assetcategory),
+    path('hostel/delete_all_assetcategory/',hostel_assert.del_all_assetcategory),
+    ##资产
+    path('hostel/asset/',hostel_assert.asset),
+    path('hostel/asset_create/',hostel_assert.asset_create),
+    path('hostel/asset_update/<int:id>/',hostel_assert.asset_update),
+    ##资产详情
+    path('hostel/assetchill/<int:id>/',hostel_assert.assetchill,name='asset'),
+    path('hostel/delete_assetchill/<int:id>/',hostel_assert.delete_assetchill,name='delete_asset'),
+    path('hostel/edit_assetchill/<int:id>/',hostel_assert.edit_assetchill,name='edit_asset'),
+
+
+
     
+    
+
     #media配置
      re_path(r'^media/(?P<path>.*)$',serve,{'document_root':settings.MEDIA_ROOT},name='media'),
      path('status/',views.status)

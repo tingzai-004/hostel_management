@@ -5,7 +5,7 @@
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h5>房间安排</h5>
             <div>
-                <a href="/hostel/add_room/" class="btn btn-add me-2">新增</a>
+                <a href="/hostel/add_room/" class="btn btn-add me-2"><i class="fa fa-plus"></i>新增</a>
                 <a href="/hostel/add_all_room/" class="btn btn-add">批量新增</a>
                 <button id="show_batch_delete" class="btn btn-danger">批量删除</button>
                
@@ -52,14 +52,20 @@
                     <td>{{i.dorm}}</td>
                     <td>{{i.people}}</td>
                     <td>{{i.room_status}}</td>
-                    <td>{{i.room_perpe}}</td>
+                    <td>{{i.room_type.name}}</td>
                     <td>{{i.gender}}</td>
 
 
 
                     <td>
-                        <a href="/hostel/edit_room/{{i.id}}/" class="btn btn-edit btn-sm">编辑</a>
-                        <a href="/hostel/delete_room/{{i.id}}/?page={{c_page.number}}" class="btn btn-delete btn-sm ms-2">删除</a>
+                        <a href="/hostel/edit_room/{{i.id}}/" class="btn btn-edit btn-sm">
+                            <i class="bi bi-pencil" ></i> <!-- Bootstrap 图标 -->
+
+                            <i class="fa fa-pencil"></i></a>
+                        <a href="/hostel/delete_room/{{i.id}}/?page={{c_page.number}}" class="btn btn-delete btn-sm ms-2"> 
+                            <i class="bi bi-trash"></i> <!-- Bootstrap 图标 -->
+ 
+                            <i class="fa fa-trash"></i></a>
                     </td>
                 </tr>
                 {% endfor %}

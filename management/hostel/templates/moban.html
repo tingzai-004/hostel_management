@@ -1,3 +1,4 @@
+{% load dict_filters %}
 <!DOCTYPE html>
 <html lang="zh-CN">
 
@@ -127,22 +128,66 @@
         .dropdown-item:hover {
             background-color: #f8f9fa;
         }
+
         .small-text {
-    font-size: 10px; /* 可根据需要调整数值，越小字体越小 */
-}
- body {
+            font-size: 10px;
+            /* 可根据需要调整数值，越小字体越小 */
+        }
+
+        .btn-sm i {
+            margin-right: 4px;
+            font-size: 0.9em;
+        }
+
+        /* 可选：让按钮圆角更圆一点（胶囊感） */
+        .btn-sm {
+            border-radius: 12px !important;
+        }
+
+        body {
             background-color: #f0f0e6;
             font-family: "Microsoft Yahei", sans-serif;
             margin: 0;
             padding: 0;
         }
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+
+        .btn-submit-mini {
+            /* 小巧尺寸 */
+            padding: 9px 24px !important;
+            /* 比之前小了一圈 */
+            font-size: 14px !important;
+            /* 文字也小一点 */
+            font-weight: 600;
+            border-radius: 50px !important;
+            /* 依旧超级圆润 */
+            margin-top: 20px;
+
+            /* 暗色主题渐变（保持高级感） */
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+
+            /* 小按钮也保留一点阴影和动效 */
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.35);
+            transition: all 0.3s ease;
+            cursor: pointer;
+
+            /* 图标和文字紧凑一点 */
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
         }
-       
+
+        .btn-submit-mini:hover {
+            background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.45);
+        }
+
+        .btn-submit-mini:active {
+            transform: translateY(-1px);
+        }
+
         .container {
             max-width: 1200px;
             margin: 0 auto;
@@ -152,11 +197,13 @@
         .header {
             margin-bottom: 30px;
         }
+
         .header h1 {
             color: #333;
             font-weight: 600;
             margin-bottom: 10px;
         }
+
         .header p {
             color: #666;
             font-size: 14px;
@@ -167,18 +214,22 @@
             display: flex;
             gap: 20px;
             margin-bottom: 30px;
-            flex-wrap: wrap;  /* 适配小屏幕 */
+            flex-wrap: wrap;
+            /* 适配小屏幕 */
         }
+
         .stat-card {
             flex: 1;
-            min-width: 200px;  /* 最小宽度，避免太窄 */
+            min-width: 200px;
+            /* 最小宽度，避免太窄 */
             background: white;
             padding: 20px;
             border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
             display: flex;
             align-items: center;
         }
+
         .stat-icon {
             width: 40px;
             height: 40px;
@@ -189,26 +240,32 @@
             margin-right: 15px;
             font-size: 20px;
         }
+
         .stat-total .stat-icon {
             background-color: #e6f7ff;
             color: #1890ff;
         }
+
         .stat-normal .stat-icon {
             background-color: #f6ffed;
             color: #52c41a;
         }
+
         .stat-booked .stat-icon {
             background-color: #fff7e6;
             color: #faad14;
         }
+
         .stat-repair .stat-icon {
             background-color: #fff1f0;
             color: #ff4d4f;
         }
+
         .stat-info h3 {
             font-size: 24px;
             color: #333;
         }
+
         .stat-info p {
             color: #888;
             font-size: 14px;
@@ -219,21 +276,24 @@
             background: white;
             padding: 15px 20px;
             border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
             margin-bottom: 30px;
             display: flex;
             gap: 20px;
             flex-wrap: wrap;
         }
+
         .filter-group {
             display: flex;
             align-items: center;
         }
+
         .filter-group label {
             color: #666;
             margin-right: 10px;
             font-size: 14px;
         }
+
         .filter-group select {
             padding: 8px 12px;
             border: 1px solid #ddd;
@@ -242,6 +302,7 @@
             cursor: pointer;
             font-size: 14px;
         }
+
         .filter-group select:focus {
             outline: none;
             border-color: #1890ff;
@@ -250,7 +311,8 @@
         /* 房间卡片容器 */
         .room-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));  /* 自动适应列数 */
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            /* 自动适应列数 */
             gap: 20px;
         }
 
@@ -259,14 +321,18 @@
             background: white;
             border-radius: 12px;
             padding: 20px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            transition: all 0.3s ease;  /* 动画过渡 */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            /* 动画过渡 */
             position: relative;
             overflow: hidden;
         }
+
         .room-card:hover {
-            transform: translateY(-5px);  /* 悬停上移 */
-            box-shadow: 0 8px 24px rgba(0,0,0,0.1);  /* 悬停加深阴影 */
+            transform: translateY(-5px);
+            /* 悬停上移 */
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            /* 悬停加深阴影 */
         }
 
         /* 卡片顶部状态条（根据状态变色） */
@@ -277,12 +343,15 @@
             width: 100%;
             height: 4px;
         }
+
         .status-正常 .room-status-bar {
             background-color: #52c41a;
         }
+
         .status-已预订 .room-status-bar {
             background-color: #faad14;
         }
+
         .status-维修中 .room-status-bar {
             background-color: #ff4d4f;
         }
@@ -292,26 +361,32 @@
             font-size: 24px;
             margin-bottom: 15px;
         }
+
         .status-正常 .room-icon {
             color: #52c41a;
         }
+
         .status-已预订 .room-icon {
             color: #faad14;
         }
+
         .status-维修中 .room-icon {
             color: #ff4d4f;
         }
+
         .room-number {
             font-size: 22px;
             font-weight: 600;
             color: #333;
             margin-bottom: 8px;
         }
+
         .room-floor {
             color: #888;
             font-size: 14px;
             margin-bottom: 15px;
         }
+
         .room-status {
             display: inline-block;
             padding: 4px 10px;
@@ -319,14 +394,17 @@
             font-size: 12px;
             color: white;
         }
+
         .status-正常 .room-status {
             background-color: #f6ffed;
             color: #52c41a;
         }
+
         .status-已预订 .room-status {
             background-color: #fff7e6;
             color: #faad14;
         }
+
         .status-维修中 .room-status {
             background-color: #fff1f0;
             color: #ff4d4f;
@@ -338,144 +416,98 @@
             padding: 60px 20px;
             color: #888;
         }
+
         .empty-state i {
             font-size: 48px;
             margin-bottom: 20px;
             color: #ddd;
         }
+
         .container {
             max-width: 1200px;
         }
+
         .stats-card {
             border-radius: 6px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
+
         .table-responsive {
             overflow-x: auto;
         }
+
         .filter-group {
             gap: 1rem;
             margin-bottom: 1.5rem;
         }
+
         .chart-container {
             height: 300px;
             margin: 1.5rem 0;
         }
-   
     </style>
     <style>
-        /* 基础按钮样式 */
-        .custom-btn {
-            display: inline-block;
-            padding: 12px 24px;
-            font-size: 16px;
-            font-weight: 600;
-            text-align: center;
-            text-decoration: none;
-            cursor: pointer;
-            border: none;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        body {
+            background: #edefe9b4;
+            color: #5c5959;
+            font-family: "Microsoft YaHei", Arial, sans-serif;
         }
 
-        /* 悬停效果 */
-        .custom-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-            background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
-        }
 
-        /* 点击效果 */
-        .custom-btn:active {
-            transform: translateY(0);
-            box-shadow: 0 2px 10px rgba(102, 126, 234, 0.3);
-        }
 
-        /* 禁用状态 */
-        .custom-btn:disabled {
-            opacity: 0.7;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
+        /* --- 以下是之前的样式，保持不变 --- */
 
-        /* 按钮组样式（可选） */
-        .btn-group {
+        /* 搜索表单样式 */
+        .search-form {
             display: flex;
-            gap: 10px;
+            align-items: center;
+            max-width: 200px;
+            /* 可以根据需要调整 */
+        }
+
+        .search-form input[type="text"] {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px 0 0 4px;
+            outline: none;
+            font-size: 14px;
+        }
+
+        .search-form .search-button {
+            padding: 8px 12px;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            border-radius: 0 4px 4px 0;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        /* 筛选表单样式 */
+        .filter-form .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-form label {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .filter-form select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            outline: none;
+            font-size: 14px;
+            background-color: #fff;
         }
     </style>
     <style>
-  .card-header {
-  display: flex;               /* 将 header 变为 flex 容器 */
-  align-items: center;         /* 让所有子元素垂直居中 */
-  gap: 20px;                   /* 子元素之间的间距 */
-  padding: 20px;
-}
-
-/* 关键改动：让包裹着表单的 div 靠右 */
-.card-header .header-actions {
-  margin-left: auto;           /* 这会将元素推到 flex 容器的末端（右侧） */
-  display: flex;               /* 让内部的两个表单也并排显示 */
-  align-items: center;         /* 垂直居中 */
-  gap: 20px;                   /* 两个表单之间的间距 */
-}
-
-/* --- 以下是之前的样式，保持不变 --- */
-
-/* 搜索表单样式 */
-.search-form {
-  display: flex;
-  align-items: center;
-  max-width: 200px; /* 可以根据需要调整 */
-}
-
-.search-form input[type="text"] {
-  flex: 1;
-  padding: 8px 12px;
-  border: 1px solid #ddd;
-  border-radius: 4px 0 0 4px;
-  outline: none;
-  font-size: 14px;
-}
-
-.search-form .search-button {
-  padding: 8px 12px;
-  border: none;
-  background-color: #007bff;
-  color: white;
-  border-radius: 0 4px 4px 0;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-/* 筛选表单样式 */
-.filter-form .filter-group {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.filter-form label {
-  font-size: 14px;
-  color: #666;
-}
-
-.filter-form select {
-  padding: 8px 12px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  outline: none;
-  font-size: 14px;
-  background-color: #fff;
-}
-</style>
-<style>
         /* 保持基础样式，调整文字和结构 */
-       
+
         .form-container {
             margin-bottom: 30px;
             padding: 20px;
@@ -483,6 +515,7 @@
             border-radius: 8px;
             background-color: #f9f9f9;
         }
+
         .form-container input {
             width: 45%;
             padding: 10px;
@@ -490,6 +523,7 @@
             border: 1px solid #ccc;
             border-radius: 4px;
         }
+
         .form-container button {
             padding: 10px 20px;
             border: none;
@@ -498,74 +532,134 @@
             color: white;
             cursor: pointer;
         }
+
         .room-types-container {
             display: flex;
             flex-wrap: wrap;
             gap: 20px;
         }
+
         .room-type-card {
             width: 200px;
             padding: 20px;
             border: 1px solid #e0e0e0;
             border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
             background-color: white;
             text-align: center;
         }
+
         .room-type-card h3 {
             margin-top: 0;
             color: #333;
         }
+
         .room-type-card p {
             color: #666;
         }
+
         .alert {
             padding: 15px;
             margin-bottom: 20px;
             border: 1px solid transparent;
             border-radius: 4px;
         }
+
         .alert-success {
             color: #155724;
             background-color: #d4edda;
             border-color: #c3e6cb;
         }
-        
+
+        .sidebar {
+            background-color: #f8f9fa;
+            /* 轻微的背景色，使其从页面中区分出来 */
+            border-radius: 8px;
+            /* 圆角边框，增加精致感 */
+            padding: 15px 0;
+            /* 上下内边距 */
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            /*  subtle 阴影，增加层次感 */
+        }
+
+        /* --- 一级菜单样式 (外部) --- */
+        /* 针对 .nav-item 下的 .nav-link */
+        .sidebar .nav-item .nav-link {
+            font-family: 'Microsoft YaHei', '微软雅黑', sans-serif;
+            /* 更现代的无衬线字体 */
+            font-size: 15px;
+            /* 稍大的字体，突出一级菜单 */
+            font-weight: 500;
+            /* 字体加粗，增强视觉权重 */
+            color: #2c3e50;
+            /* 深色调，显得专业 */
+            padding: 12px 25px;
+            /* 上下12px，左右25px的内边距，让点击区域更大，更美观 */
+            margin: 5px 10px;
+            /* 外边距，与其他菜单项隔开 */
+            border-radius: 6px;
+            /* 圆角，与侧边栏呼应 */
+            transition: all 0.3s ease;
+            /* 过渡效果，让 hover 变化更平滑 */
+        }
+
+        .dropdown-menu .dropdown-item {
+            /* 1. 修改字体族 */
+            font-family: 'Microsoft YaHei', '微软雅黑', sans-serif;
+            /* 使用你喜欢的字体 */
+
+            /* 2. 修改字体大小 */
+            font-size: 14px;
+            /* 例如，设置为14像素 */
+
+            /* 3. 修改文字颜色 */
+            color: #333333;
+            /* 深灰色，比默认的黑色更柔和 */
+        }
+
+        /* (可选) 修改下拉菜单选项在鼠标悬停或聚焦时的样式 */
+        .dropdown-menu .dropdown-item:hover,
+        .dropdown-menu .dropdown-item:focus {
+            color: #ffffff;
+            /* 文字变为白色 */
+            background-color: #3a5878;
+            /* 背景变为蓝色 */
+        }
     </style>
-    
+
 </head>
 
 <body>
     <!-- 导航栏 -->
     <nav class="navbar navbar-expand-lg">
-       <div class="container-fluid">
-  <a class="navbar-brand text-white d-flex align-items-center" href="/hostel/area/">
-    
-      <img src="/media/bg/1.jpg" alt="研梦小筑Logo" style="width: 90px; height: 50px; margin-right: 10px;">
-      <div>
-        <span style="font-size: 1.5rem; font-weight: bold;">研梦小筑</span>
-        <span class="small-text ms-2" style="font-size: 0.8rem; opacity: 0.8;">系统(联合开发自研V1.0)</span>
-      </div>
-  </a>
-</div>
+        <div class="container-fluid">
+            <a class="navbar-brand text-white d-flex align-items-center" href="/hostel/area/">
 
-<style>
-  .small-text {
-    vertical-align: middle;
-  }
-</style>
+                <img src="/media/bg/1.jpg" alt="研梦小筑Logo" style="width: 90px; height: 50px; margin-right: 10px;">
+                <div>
+                    <span style="font-size: 1.5rem; font-weight: bold;">研梦小筑</span>
+                    <span class="small-text ms-2" style="font-size: 0.8rem; opacity: 0.8;">系统(联合开发自研V1.0)</span>
+                </div>
+            </a>
+        </div>
 
-            <div class="dropdown ms-3">
-                <button class="btn btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown"
-                    aria-expanded="false">
-                    个人信息 <i class="fas fa-user"></i>
-                </button>
-                <ul class="dropdown-menu dropdown-menu-end">
-                    <li><a class="dropdown-item" href="/user_img/"><i class="fas fa-user-circle"></i> 个人中心</a></li>
-                    <li><a class="dropdown-item" href="/hostel/admin_reset/"><i class="fas fa-key"></i> 重置密码</a></li>
-                    <li><a class="dropdown-item" href="/logout/"><i class="fas fa-sign-out-alt"></i> 退出登录</a></li>
-                </ul>
-            </div>
+        <style>
+            .small-text {
+                vertical-align: middle;
+            }
+        </style>
+
+        <div class="dropdown ms-3">
+            <button class="btn btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown"
+                aria-expanded="false">
+                个人信息 <i class="fas fa-user"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li><a class="dropdown-item" href="/user_img/"><i class="fas fa-user-circle"></i> 个人中心</a></li>
+                <li><a class="dropdown-item" href="/hostel/admin_reset/"><i class="fas fa-key"></i> 重置密码</a></li>
+                <li><a class="dropdown-item" href="/logout/"><i class="fas fa-sign-out-alt"></i> 退出登录</a></li>
+            </ul>
+        </div>
         </div>
     </nav>
 
@@ -577,23 +671,28 @@
                 <div class="sidebar">
                     <ul class="nav flex-column">
                         <!-- 宿舍资源管理 下拉菜单 -->
-                        <li class="nav-item">
-                            <div class="dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
-                                    aria-expanded="false">
-                                    <i class="fas fa-building"></i> 宿舍资源管理
+                        <li class="nav-item dropdown">
+    <a class="nav-link" href="/statusUI/">
+                                <i class="fa-solid fa-cloud"></i> 宿舍状态UI
                                 </a>
-                                <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="/hostel/area/"><i
-                                                class="fas fa-map-marker-alt"></i> 区域安排</a></li>
-                                    <li><a class="dropdown-item" href="/hostel/dorm/"><i class="fas fa-layer-group"></i>
-                                            楼栋安排</a></li>
-                                    <li><a class="dropdown-item" href="/hostel/room/"><i class="fas fa-door-open"></i>
-                                            房间安排</a></li>
+    <a class="nav-link dropdown-toggle" 
+       href="#" 
+       role="button" 
+       data-bs-toggle="dropdown" 
+       data-bs-auto-close="outside"
+       aria-expanded="false">
+        <i class="fas fa-building"></i> 宿舍资源管理
+    </a>
 
-                                </ul>
-                            </div>
-                        </li>
+    <ul class="dropdown-menu">
+        <li><a class="dropdown-item" href="/hostel/area/">
+            <i class="fas fa-map-marker-alt"></i> 区域安排</a></li>
+        <li><a class="dropdown-item" href="/hostel/dorm/">
+            <i class="fas fa-layer-group"></i> 楼栋安排</a></li>
+        <li><a class="dropdown-item" href="/hostel/room/">
+            <i class="fas fa-door-open"></i> 房间安排</a></li>
+    </ul>
+</li>
                         <!-- 住宿人员管理 下拉菜单 -->
                         <li class="nav-item">
                             <div class="dropdown">
@@ -631,36 +730,60 @@
                                                 class="fas fa-share-alt"></i> 费用分摊管理</a></li>
                                     <!-- <li><a class="dropdown-item" href="/hostel/fee/"><i class="fas fa-receipt"></i>
                                             宿舍费用记录</a></li> -->
-                                    <li><a class="dropdown-item" href="/hostel/standard/"><i
-                                                class="fas fa-file-alt"></i> 计费标准</a></li>
                                     <li><a class="dropdown-item" href="/hostel/fee_record/"><i
-                                                class="fas fa-file-alt"></i> 费用细则</a></li>
+                                                class="fas fa-file-alt"></i> 宿舍缴费记录</a></li>
+                                    <li><a class="dropdown-item" href="/hostel/discount/"><i
+                                                class="fas fa-file-alt"></i> 折扣率查看与管理</a></li>
 
+
+                                </ul>
+                            </div>
+                        </li>
+                        <li class="nav-item">
+                            <div class="dropdown" >
+                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                                    aria-expanded="false">
+                                    <i class="fas fa-bed"></i> 宿舍资产绑定管理 <!-- 主菜单图标：宿舍专属图标 -->
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <a class="dropdown-item" href="/hostel/assetcategory/">
+                                            资产类别查看 <!-- 资产类别：标签图标 -->
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="/hostel/asset/">
+                                            宿舍资产绑定系统 <!-- 宿舍资产：床位图标 -->
+                                        </a>
+                                    </li>
                                 </ul>
                             </div>
                         </li>
                         <!-- 系统设置 普通导航项 -->
                         <li class="nav-item">
-                            
+
                             <a class="nav-link" href="/hostel/permission/">
                                 <i class="fas fa-semibold fa-eye"></i> 权限名称查看
                             </a>
-                            <a class="nav-link" href="/statusUI/">
+                            <!-- <a class="nav-link" href="/statusUI/">
                                 <i class="fa-solid fa-cloud"></i> 宿舍状态UI
-                            </a>
-                            <a class="nav-link" href="/upload_back/">
-                                <i class="fas fa-cog"></i> 系统设置(更换登录页面背景)
-                            </a>
-                            
-                           {% if request.session.info.is_super == True %}
-                            <a class="nav-link" href="/admin_list/">
-                                <i class="fa-solid fa-user-minus"></i> 管理员列表查看
-                            </a>
-                            {%endif%}
-                            <a class="nav-link" href="/table/">
-                                <i class="fa-solid fa-sack-xmark"></i> 点击生成报表
-                            </a>
-                              
+                                </a> -->
+                                <a class="nav-link" href="/hostel/room_type">
+                                    <i class="fa fa-cubes"></i> 房型管理
+                                </a>
+                                <a class="nav-link" href="/upload_back/">
+                                    <i class="fas fa-cog"></i> 系统设置(更换登录页面背景)
+                                </a>
+
+                                {% if request.session.info.is_super == True %}
+                                <a class="nav-link" href="/admin_list/">
+                                    <i class="fa-solid fa-user-minus"></i> 管理员列表查看
+                                </a>
+                                {%endif%}
+                                <a class="nav-link" href="/table/">
+                                    <i class="fa-solid fa-sack-xmark"></i> 点击生成报表
+                                </a>
+
                         </li>
                     </ul>
                 </div>
@@ -740,7 +863,7 @@
                             {% endblock %}
                             <!-- 分页 -->
 
-                          
+
 
                         </div>
                     </div>
@@ -754,36 +877,40 @@
     <!-- 引入 Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-  // 找到触发按钮（表格外的单个按钮）
-  const showBtn = document.getElementById('show_batch_delete');
-  // 找到所有勾选框（全选 + 行勾选框）
-  const checkboxes = document.querySelectorAll('input[type="checkbox"]');
-  // 找到批量删除执行按钮
-  const batchDeleteBtn = document.getElementById('batch_delete_btn');
-  // 找到全选框
-  const selectAll = document.getElementById('select_all');
+        // 找到触发按钮（表格外的单个按钮）
+        const showBtn = document.getElementById('show_batch_delete');
+        // 找到所有勾选框（全选 + 行勾选框）
+        const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+        // 找到批量删除执行按钮
+        const batchDeleteBtn = document.getElementById('batch_delete_btn');
+        // 找到全选框
+        const selectAll = document.getElementById('select_all');
 
-  showBtn.onclick = function() {
-    const isHidden = checkboxes[0].style.display === 'none';
-    if (isHidden) {
-      checkboxes.forEach(box => box.style.display = 'inline-block');
-      batchDeleteBtn.style.display = 'inline-block';
-      showBtn.textContent = '取消批量删除';
-    } else {
-      checkboxes.forEach(box => box.style.display = 'none');
-      batchDeleteBtn.style.display = 'none';
-      showBtn.textContent = '批量删除';
-    }
-  };
+        showBtn.onclick = function () {
+            const isHidden = checkboxes[0].style.display === 'none';
+            if (isHidden) {
+                checkboxes.forEach(box => box.style.display = 'inline-block');
+                batchDeleteBtn.style.display = 'inline-block';
+                showBtn.textContent = '取消批量删除';
+            } else {
+                checkboxes.forEach(box => box.style.display = 'none');
+                batchDeleteBtn.style.display = 'none';
+                showBtn.textContent = '批量删除';
+            }
+        };
 
-  // 全选功能
-  selectAll.onchange = function() {
-    const itemCheckboxes = document.querySelectorAll('input[name="ids"]');
-    itemCheckboxes.forEach(box => box.checked = this.checked);
-  };
-</script>
+        // 全选功能
+        selectAll.onchange = function () {
+            const itemCheckboxes = document.querySelectorAll('input[name="ids"]');
+            itemCheckboxes.forEach(box => box.checked = this.checked);
+        };
+    </script>
+   
 
-    
+<!-- 2. 关键脚本：阻止默认关闭行为 -->
+ 
+
+
 </body>
 
 </html>

@@ -275,8 +275,24 @@ def delete_all_dorm(request):
 class roommodel(BootStrapModelForm):
     class Meta:
         model=models.Room
-        fields=['room_name','people','room_status','dorm','gender']
-
+        fields=['room_name','dorm','gender','room_type']
+    def clean(self):
+        dorm=self.cleaned_data['dorm']
+        room_name=self.cleaned_data['room_name']
+        exit=models.Room.objects.filter(room_name=room_name,dorm=dorm).exists()
+        if exit:
+            raise forms.ValidationError("该楼栋下房间已存在")
+        return self.cleaned_data
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # 只显示“启用”且去重的房间类型
+        valid_room_types = models.room_type.objects.filter(
+            status=True
+        ).values("id", "name").distinct().order_by("name")
+        # 2. 构造选项：(id, name) 格式
+        self.fields["room_type"].choices = [
+            (rt["id"], rt["name"]) for rt in valid_room_types
+        ]
 def room(request):
    
     search_data = request.GET.get('q', '')
@@ -317,10 +333,10 @@ def add_room(request):
     form=roommodel(data=request.POST)
     if form.is_valid():
         data=request.session.get('info')
-        if data==None:
-            return HttpResponse("请先登录")
-        name=data.get('name')
-        logger.info('%s添加了一条房间记录%s'%(name,form.cleaned_data.get('room_name')))
+        # if data==None:
+        #     return HttpResponse("请先登录")
+        # name=data.get('name')
+        # logger.info('%s添加了一条房间记录%s'%(name,form.cleaned_data.get('room_name')))
         form.save()
         return redirect("/hostel/room/")
     return render(request,"add_area.html",{"form":form,"error":form.errors,'titel':"添加房间"})

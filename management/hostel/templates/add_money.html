@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>个人费用中心</title>
+  <!-- 外部资源 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <!-- 引入 Font Awesome 图标库 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- 引入 Font Awesome 6 最新版本 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.2/css/all.min.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+
+  <!-- 配置Tailwind -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#2563EB',
+            success: '#16A34A',
+            warning: '#D97706',
+            danger: '#DC2626',
+            neutral: '#64748B',
+            // 新增logo背景色
+            logoBlue: '#1E3A6C'
+          }
+        }
+      }
+    }
+  </script>
+
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .card {
+        @apply bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden;
+      }
+      .card-header {
+        @apply px-5 py-4 border-b border-gray-100 bg-gray-50;
+      }
+      .card-body {
+        @apply px-5 py-4;
+      }
+      .text-balance {
+        text-wrap: balance;
+      }
+    }
+  </style>
+  <style>
+  .card-header {
+  display: flex;               /* 将 header 变为 flex 容器 */
+  align-items: center;         /* 让所有子元素垂直居中 */
+  gap: 20px;                   /* 子元素之间的间距 */
+  padding: 20px;
+}
+
+/* 关键改动：让包裹着表单的 div 靠右 */
+.card-header .header-actions {
+  margin-left: auto;           /* 这会将元素推到 flex 容器的末端（右侧） */
+  display: flex;               /* 让内部的两个表单也并排显示 */
+  align-items: center;         /* 垂直居中 */
+  gap: 20px;                   /* 两个表单之间的间距 */
+}
+
+/* --- 以下是之前的样式，保持不变 --- */
+
+/* 搜索表单样式 */
+.search-form {
+  display: flex;
+  align-items: center;
+  max-width: 200px; /* 可以根据需要调整 */
+}
+
+.search-form input[type="text"] {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px 0 0 4px;
+  outline: none;
+  font-size: 14px;
+}
+
+.search-form .search-button {
+  padding: 8px 12px;
+  border: none;
+  background-color: #007bff;
+  color: white;
+  border-radius: 0 4px 4px 0;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+/* 筛选表单样式 */
+.filter-form .filter-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filter-form label {
+  font-size: 14px;
+  color: #666;
+}
+
+.filter-form select {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  outline: none;
+  font-size: 14px;
+  background-color: #fff;
+}
+</style>
+
+</head>
+
+<body class="bg-gray-50 font-sans text-gray-800">
+  <!-- 顶部导航（修改为logo背景色） -->
+  <header class="bg-logoBlue text-white shadow">
+    <div class="container mx-auto px-4 py-3 flex items-center">
+      <!-- 添加logo -->
+      <img src="/media/bg/2.jpg" alt="中科中山药物创新研究院logo" class="h-10 mr-3" style="width: 120px;height: 60px;">
+      <div>
+        <h1 class="text-xl font-bold">研梦小筑 ——个人费用明细查询</h1>
+        <span class="small-text ms-2" style="font-size: 0.8rem; opacity: 0.8;">系统(联合开发自研V1.0)</span>
+      </div>
+      <div class="ml-auto flex items-center gap-4">
+        <div class="flex items-center gap-2">
+          
+          <span class="text-xs bg-white/10 px-2 py-1 rounded-full" style="width: 100px;height: 35px;text-align: center;line-height: 25px"><a href="/user/reset/">上传缴费截图</a></span>   
+          <span class="hidden md:inline">{{request.session.info.name}}</span>
+          <span class="text-xs bg-white/10 px-2 py-1 rounded-full">{{room_dorm}}栋{{room_num}}室</span>
+          <span class="text-xs bg-white/10 px-2 py-1 rounded-full"><a href="/user/logout/">退出登录</a></span>
+          <span class="text-xs bg-white/10 px-2 py-1 rounded-full"><a href="/user/reset/">重置密码</a></span>
+         
+        </div>
+        <button class="p-2 rounded-full hover:bg-white/10 transition-colors">
+          <i class="fa fa-bell-o"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+  <div class="container">
+  <div class="card">
+  <h5 class="card-header">{{titel}}</h5>
+  <div class="card-body">
+    <h5 class="card-title"></h5>
+    <p class="card-text">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} mt-3">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+             {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                    {% for error in form.non_field_errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+                {% endif %}
+            {% for field in form %}  <!-- 变量名统一为field，避免混淆 -->
+        <div class="mb-3">
+            <label for="{{ field.id_for_label }}" class="form-label" style="margin-top: 10px;">
+                {{ field.label }}
+            </label>
+            {{ field }}  <!-- 渲染字段（文件输入框会自动变成<input type="file">） -->
+            {% if field.errors %}
+                <div class="text-danger mt-1">
+                    {{ field.errors.0 }}  <!-- 只显示第一个错误，更友好 -->
+                </div>
+            {% endif %}
+        </div>  <!-- 关键：闭合每个字段的div -->
+    {% endfor %}
+            {% if field.errors %}
+                    <div class="text-danger">  <!-- 修正颜色写法 -->
+                        {% for error in field.errors %}
+                            {{ error.0 }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+           <div>
+<button type="submit" class="btn btn-success" style="margin-top: 10px;background-color: rgb(63, 104, 241);">
+                                <i class="fas fa-paper-plane"></i> 提交
+                            </button>
+                            <a href="/miao/" class="btn btn-success" style="margin-top: 10px;background-color: rgb(63, 104, 241);">
+                                <i class="fas fa-paper-plane"></i>返回</a>
+           
+    
+    </div>
+           
+        </form></p>
+    
+  </div>
+</div>
+</div>
+
+  <!-- 页脚 -->
+  <footer class="bg-white border-t border-gray-200 mt-8 py-6">
+    <div class="container mx-auto px-4 text-center text-sm text-neutral">
+      <p>© 2023 研梦小筑系统 | 联合开发自研V1.0</p>
+    </div>
+  </footer>
+</body>
+
+</html>

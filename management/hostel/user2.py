@@ -72,8 +72,8 @@ def miao(request):
         room_home_fees= room.fees.filter(feetype__name="房费")
 
         # 资源使用量筛选（假设res模型有amount字段存储用量）
-        res_dian = room.res.filter(feetype__name="电费").first()  # 取第一条用量记录
-        res_water = room.res.filter(feetype__name="水费").first()
+        # res_dian = room.res.filter(feetype__name="电费").first()  # 取第一条用量记录
+        # res_water = room.res.filter(feetype__name="水费").first()
        
 
         # 电费分摊记录 → 计算总分摊金额
@@ -105,12 +105,12 @@ def miao(request):
         total=round(total_dian_sharing+total_water_sharing+total_cold_sharing+total_home_sharing,2)
         not_status=round(models.feesharing.objects.filter(status="0",occupancyrecord__user=person).aggregate(total=Sum("feesharings"))["total"]or Decimal("0"),2)
         status=round(models.feesharing.objects.filter(status="1",occupancyrecord__user=person).aggregate(total=Sum("feesharings"))["total"]or Decimal("0"),2)
-        try:
-        # 第107行
-            rate=round(Decimal(status)/Decimal(total)*100 ,2)
-        except DivisionByZero:
-        # 当发生除零错误时，执行这里的代码
-            fee_per_person = Decimal('0.00')
+        # try:
+        # # 第107行
+        #     rate=round(Decimal(status)/Decimal(total)*100 ,2)
+        # except DivisionByZero:
+        # # 当发生除零错误时，执行这里的代码
+        #     fee_per_person = Decimal('0.00')
         
         m1=models.feesharing.objects.filter(occupancyrecord__user=person,status="1",fee_type__name="电费").first()
         m2=models.feesharing.objects.filter(occupancyrecord__user=person,status="1",fee_type__name="水费").first()
@@ -118,10 +118,10 @@ def miao(request):
         m4=models.feesharing.objects.filter(occupancyrecord__user=person,status="1",fee_type__name="空调费").first()
         ##费用列表
         list=models.feesharing.objects.filter(occupancyrecord__user=person)
-        rate_home=round(Decimal("200")/Decimal(total)*100 ,2)
-        rate_cold=round(Decimal("150")/Decimal(total)*100 ,2)
-        rate_water=round(Decimal(total_water_sharing)/Decimal(total)*100 ,2)
-        rate_dian=round(Decimal(total_dian_sharing)/Decimal(total)*100 ,2)
+        # rate_home=round(Decimal("200")/Decimal(total)*100 ,2)
+        # rate_cold=round(Decimal("150")/Decimal(total)*100 ,2)
+        # rate_water=round(Decimal(total_water_sharing)/Decimal(total)*100 ,2)
+        # rate_dian=round(Decimal(total_dian_sharing)/Decimal(total)*100 ,2)
         ##列表日期
         fee_queryset = models.feesharing.objects.filter(occupancyrecord__user=person).order_by('-start_date')  # 按开始日期倒序
 
@@ -151,23 +151,23 @@ def miao(request):
         "room_dorm": room_dorm,
         "dian_sharing_amount": total_dian_sharing,  # 电费总分摊金额
         "water_sharing_amount": total_water_sharing,  # 水费总分摊金额
-        "res_dian_amount": res_dian.usege if res_dian else 0,  # 电费用量
-        "res_water_amount": res_water.usege if res_water else 0,  # 水费用量
-        "room_dian_fee_total": room_dian_fees.first().amount if room_dian_fees else 0,  # 电费总费用
-        "room_water_fee_total": room_water_fees.first().amount if room_water_fees else 0,  # 水费总费用
-        "total":total,
-        "status":status,
-        "not_status":not_status,
-        "rate":rate,
-        "m1":m1,
-        "m2":m2,
-        "m3":m3,
-        "m4":m4,
-        "list":list,
-        "rate_home":rate_home,
-        "rate_cold":rate_cold,  
-        "rate_water":rate_water,
-        "rate_dian":rate_dian,
+        # "res_dian_amount": res_dian.usege if res_dian else 0,  # 电费用量
+        # "res_water_amount": res_water.usege if res_water else 0,  # 水费用量
+        # "room_dian_fee_total": room_dian_fees.first().amount if room_dian_fees else 0,  # 电费总费用
+        # "room_water_fee_total": room_water_fees.first().amount if room_water_fees else 0,  # 水费总费用
+        # "total":total,
+        # "status":status,
+        # "not_status":not_status,
+        # "rate":rate,
+        # "m1":m1,
+        # "m2":m2,
+        # "m3":m3,
+        # "m4":m4,
+        # "list":list,
+        # "rate_home":rate_home,
+        # "rate_cold":rate_cold,  
+        # "rate_water":rate_water,
+        # "rate_dian":rate_dian,
         "total_cold_sharing":total_cold_sharing,
         "total_home_sharing":total_home_sharing,
         "fee_records": fee_records,
@@ -264,3 +264,4 @@ def user_reset(request):
         "title": f"重置密码 - {user_obj.name}",
         "form": form
     })
+

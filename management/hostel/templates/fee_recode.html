@@ -1,6 +1,7 @@
 {% extends 'moban.html' %}
-
+{% load dict_filters %}
 {% block content %}
+
 <div class="col-md-10">
     <div class="content">
         <div class="d-flex justify-content-between align-items-center mb-3">
@@ -8,8 +9,8 @@
             <div>
                 <a href="/peint3/" class="btn btn-sm btn-outline-secondary ms-2">
                     <i class="bi bi-download"></i> 导出Excel</a>
-                <a href="/hostel/add_fee_record/" class="btn btn-add me-2">新增</a>
-                <a href="/hostel/add_all_fee_record/" class="btn btn-add">批量上传</a>
+                <!-- <a href="/hostel/add_fee_record/" class="btn btn-add me-2">新增</a> -->
+                <!-- <a href="/hostel/add_all_fee_record/" class="btn btn-add">批量上传</a> -->
                 <button id="show_batch_delete" class="btn btn-danger">批量删除</button>
                
 
@@ -28,58 +29,69 @@
             </form>
         </div>
         <!-- 表格 -->
-        <form method="post" action="/hostel/delete_all_fee_record/" onsubmit="return confirm('确定要删除选中的人员吗？')">
+        <form method="post" action="/hostel/delete_all_fee_record/" onsubmit="return confirm('确定要删除选中的记录吗？')">
             {% csrf_token %}
-        <table class="table table-striped table-hover">
-            <thead>
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" id="select_all" style="display: none;"> 全选</th>
+                        <th>序号</th>
+                        <th>房间</th>
+                        <th>房费</th>
+                        <!-- 动态表头：循环启用的计费项目 -->
+                        {% for fee in active_fees %}
+                        <th>{{ fee.name }}</th>
+                        {% endfor %}
+                        <th>总费用</th>
+                        <th>缴费状态</th>
+                        <th>创建日期</th>
+                        
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in c_page %}
+            <tr>
+                <td><input type="checkbox" name="ids" value="{{ record.id }}" style="display: none;"></td>
+                <td>{{ record.id }}</td>
+                <td>{{ record.room }}</td>
+                <td>{{record.room_fee}}</td>
 
-                <tr>
-                    <th><input type="checkbox" id="select_all" style="display: none;"> 全选</th>
-                    <th>序号</th>
-                    <th>房间</th>
-                    <th>房费</th>
-                    <th>空调费</th>
-                    <th>电费</th>
-                    <th>水费</th>
-                    <th>总费用</th>
-                    <th>缴费状态</th>
-                    <th>创建日期</th>
-                    <th>录入人</th>
-                    <th>操作</th>
-                </tr>
+                <!-- 重点修改这里：用 get_item 过滤器取代原来不支持的写法 -->
+                {% for fee in active_fees %}
+    <td>
+        <!-- 核心：用费用名称作为键，取dynamic_fees的值，默认0 -->
+        {{ record.dynamic_fees|get_item:fee.name|default:0 }}元
+    </td>
+    {% endfor %}
 
-            </thead>
-            <tbody>
-                {% for i in c_page%}
-                <tr>
-                    <td><input type="checkbox" name="ids" value="{{ i.id }}" style="display: none;"></td>
-                    <td>{{i.id}}</td>
-                    <td>{{i.room}}</td>
-                    <td>{{i.fee_type}}</td>
-                    <td>{{i.da_te}}</td>
-                    <td>{{i.am_ount}}</td>
-                    <td>{{i.name}}</td>
-                    <td>{{i.feesharing}}</td>
-                    {% if i.status == "0"%}
-                    <td>未缴费</td>
-                    {% else %}
-                    <td>已缴费</td>
-                    {% endif %}
-                    <td>{{i.cdate}}</td>
-                    <td>{{i.check_people}}</td>
+                <td>{{ record.amount }}元</td>
+                <td>{% if record.status == "0" %}未缴费{% else %}已缴费{% endif %}</td>
+                <td>{{ record.date|date:"Y-m-d" }}</td>
+                
+                <td>
 
-
-                    <td>
-                        <a href="/hostel/edit_fee_record/{{i.id}}/" class="btn btn-edit btn-sm">编辑</a>
-                        <a href="/hostel/del_fee_record/{{i.id}}/?page={{c_page.number}}"
-                            class="btn btn-delete btn-sm ms-2">删除</a>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        <button id="batch_delete_btn" class="btn btn-danger" style="display: none; margin-top: 10px;">批量删除选中</button>
-        <p style="margin-top: 20px;">请选择要删除的区域</p>
+                <a href="/hostel/edit_fee_record/{{record.id}}/?page={{c_page.number}}"
+       class="btn btn-outline-primary btn-sm me-1">
+        <i class="fas fa-edit"></i> 编辑
+    </a>
+                    <a href="/hostel/del_fee_record/{{ record.id }}/?page={{ c_page.number }}"
+       class="btn btn-outline-danger btn-sm"
+       onclick="return confirm('确定要删除这个房型吗？删除后数据无法恢复！')">
+        <i class="fas fa-trash-alt"></i> 删除
+    </a>
+                    
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="{{ active_fees|length|add:8 }}" class="text-center">暂无费用记录</td>
+            </tr>
+            {% endfor %}
+                </tbody>
+            </table>
+            <button id="batch_delete_btn" class="btn btn-danger" style="display: none; margin-top: 10px;">批量删除选中</button>
+            <p style="margin-top: 20px;">请选择要删除的记录</p>
         </form>
 
         <!-- 消息提示 -->
@@ -104,20 +116,11 @@
             <!-- 只显示当前页、第1页、最后1页（避免无效页） -->
             
             <!-- 中间只显示当前页（如果当前页不是1或最后1页） -->
-            {% if paginator.num_pages <= 3 %}
-                {% for num in paginator.page_range %}
-                    <li class="page-item {% if c_page.number == num %}active{% endif %}">
-                        <a class="page-link" href="/hostel/fee_record?page={{ num }}">{{ num }}</a>
-                    </li>
-                {% endfor %}
-            {% else %}
-                <!-- 总页数>3时，只显示1、2、3 -->
-                {% for num in page_nums %}
-                    <li class="page-item {% if c_page.number == num %}active{% endif %}">
-                        <a class="page-link" href="/hostel/fee_record?page={{ num }}">{{ num }}</a>
-                    </li>
-                {% endfor %}
-            {% endif %}
+            {% for num in display_pages %}
+        <li class="page-item {% if c_page.number == num %}active{% endif %}">
+            <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+        </li>
+    {% endfor %}
 
             <!-- 下一页 -->
             <li class="page-item {% if not c_page.has_next %}disabled{% endif %}">

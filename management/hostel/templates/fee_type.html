@@ -4,7 +4,7 @@
 <div class="col-md-10">
     <div class="content">
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5>{{titel}}</h5>
+            <h5>计费项目</h5>
             <div>
                 <a href="/hostel/add_feetype/" class="btn btn-add me-2">新增</a>
             </div>
@@ -15,7 +15,7 @@
                 
             </div>
             <form method="get" action="/hostel/fee_type/" style="display: inline-flex; align-items: center;">
-                <input type="text" name="q" placeholder="输入项目查询" style="border: 1px solid #ddd; padding: 6px 10px; border-radius: 4px; margin-right: 5px; outline: none;" value="{{ request.GET.q|default:'' }}">
+                <input type="text" name="q" placeholder="输入区域查询" style="border: 1px solid #ddd; padding: 6px 10px; border-radius: 4px; margin-right: 5px; outline: none;" value="{{ request.GET.q|default:'' }}">
                 <button type="submit" style="background-color: #6f7272; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer;">
                     search
                 </button>
@@ -28,8 +28,10 @@
                     <th>计费项目</th>
                     <th>费用单价</th>
                     <th>计算单位</th>
+                    <th>实施区域</th>
+                    <th>费用是否固定</th>
                     <th>状态</th>
-                    <th>创建日期</th>
+                    <th>生效日期</th>
                     <th>操作</th>
                 </tr>
             </thead>
@@ -40,8 +42,14 @@
                     <td>{{i.name}}</td>
                     <td>{{i.fee}}</td>
                     <td>{{i.bit}}</td>
+                    <td>{{i.area}}</td>
+                    {% if i.is_sign  %}
+                    <td>是</td>
+                    {%else%}
+                    <td>否</td>
+                    {%endif%}
                     <td>{{i.status}}</td>
-                    <td>{{i.cdate}}</td>
+                    <td>{{i.effective_date}}</td>
                     <td>
                         <a href="/hostel/edit_feetype/{{i.id}}/" class="btn btn-edit btn-sm">编辑</a>
                         <a href="/hostel/delete_feetype/{{i.id}}/" class="btn btn-delete btn-sm ms-2">删除</a>
@@ -59,24 +67,13 @@
                 <a class="page-link" href="{% if c_page.has_previous %}/hostel/fee_type?page={{ c_page.previous_page_number }}{% else %}#{% endif %}">上一页</a>
             </li>
 
-            <!-- 只显示当前页、第1页、最后1页（避免无效页） -->
-            <li class="page-item {% if c_page.number == 1 %}active{% endif %}">
-                <a class="page-link" href="/hostel/fee_type?page=1">1</a>
-            </li>
-
+            
             <!-- 中间只显示当前页（如果当前页不是1或最后1页） -->
-            {% if c_page.number > 1 and c_page.number < paginator.num_pages %}
-                <li class="page-item active">
-                    <a class="page-link" href="/hostel/fee_type?page={{ c_page.number }}">{{ c_page.number }}</a>
-                </li>
-            {% endif %}
-
-            <!-- 最后1页（如果总页数>1） -->
-            {% if paginator.num_pages > 1 %}
-                <li class="page-item {% if c_page.number == paginator.num_pages %}active{% endif %}">
-                    <a class="page-link" href="/hostel/fee_type?page={{ paginator.num_pages }}">{{ paginator.num_pages }}</a>
-                </li>
-            {% endif %}
+             {% for num in display_pages %}
+        <li class="page-item {% if c_page.number == num %}active{% endif %}">
+            <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+        </li>
+    {% endfor %}
 
             <!-- 下一页 -->
             <li class="page-item {% if not c_page.has_next %}disabled{% endif %}">

@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>宿舍资产详情 - ZIDD宿舍资产智能绑定系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#9333EA', // 主紫
+                        secondary: '#6D28D9', // 深紫
+                        dark: '#0F172A',
+                        darker: '#030712',
+                        card: '#1E293B',
+                    },
+                    fontFamily: {
+                        inter: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                },
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+      .gradient-border {
+        position: relative;
+        border-radius: 0.75rem;
+      }
+      .gradient-border::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: 0.75rem;
+        padding: 1px;
+        background: linear-gradient(135deg, #9333EA, #6D28D9);
+        -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+        pointer-events: none;
+      }
+      .asset-item-hover {
+        transition: all 0.2s ease;
+      }
+      .asset-item-hover:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(147, 51, 234, 0.3);
+      }
+    }
+  </style>
+</head>
+
+<body class="bg-gradient-to-br from-darker to-dark min-h-screen font-inter text-gray-100">
+    <!-- 顶部导航 -->
+    <nav class="bg-darker/80 backdrop-blur-md border-b border-primary/20 sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <i class="fa fa-building-o text-primary text-2xl"></i>
+                <h1 class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
+                    ZIDD宿舍资产智能绑定系统
+                </h1>
+            </div>
+            <div class="flex items-center gap-4">
+                <a href="/hostel/asset/"
+                    class="px-3 py-1.5 rounded-full bg-primary/10 hover:bg-primary/20 transition-colors"
+                    style="text-decoration: none;">
+                    <i class="fas fa-arrow-left mr-1"></i>返回列表
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主内容区 -->
+    <main class="container mx-auto px-4 py-8">
+        <!-- 宿舍信息卡片 -->
+        <div class="gradient-border bg-card p-6 mb-8">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div class="flex items-center gap-3">
+                    <!-- 宿舍标签（颜色可自定义） -->
+                    <span
+                        class="w-10 h-10 rounded-full bg-purple-500/80 flex items-center justify-center text-white font-bold text-lg">
+                        {{room}}
+                    </span>
+                    <div>
+                        <h2 class="text-2xl font-bold">{{dorm}}-{{room}}宿舍</h2>
+                        <p class="text-gray-400 text-sm mt-1">所属楼栋：{{dorm}} | 房间类型：{{room_type}}</p>
+                    </div>
+                </div>
+                <div class="flex gap-3">
+                    <div class="text-center">
+                        <p class="text-gray-400 text-sm">资产总数</p>
+                        <p class="text-xl font-bold text-primary">{% if assets %}{{assets}}{%else%}0{%endif%}</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-gray-400 text-sm">总价值</p>
+                        <p class="text-xl font-bold text-primary">¥{{asset_sum}}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 资产详情列表 -->
+
+        <div class="gradient-border bg-card p-6">
+            <h2 class="text-xl font-semibold mb-6">资产详情</h2>
+            <div class="space-y-4">
+                <!-- 循环渲染资产项 -->
+                {% for item in asset %}
+                <div class="bg-darker rounded-lg p-4 asset-item-hover group">
+                    <div class="flex flex-col md:flex-row justify-between gap-4 items-center">
+                        <div class="flex items-center gap-3">
+                            <!-- 图标动态匹配 -->
+                            <div class="w-12 h-12 rounded-full 
+            {% if '空调' in item.name %}bg-blue-500/20{% elif '衣柜' in item.name %}bg-green-500/20{% else %}bg-purple-500/20{% endif %} 
+            flex items-center justify-center">
+                                <i class="
+              {% if '空调' in item.name %}fa fa-snowflake-o text-blue-400{% elif '衣柜' in item.name %}fa fa-suitcase text-green-400{% else %}fa fa-cube text-purple-400{% endif %} 
+              text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-medium">{{ item.name }}</h3>
+                                <p class="text-gray-400 text-sm">资产编码：{{ item.asset_code }}</p>
+                            </div>
+                        </div>
+
+                        <!-- 资产信息 + 操作按钮 组合 -->
+                        <div class="w-full md:w-auto flex flex-col md:flex-row items-start md:items-center gap-4">
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-x-8 gap-y-2 text-sm w-full md:w-auto">
+                                <div>
+                                    <p class="text-gray-400">品牌</p>
+                                    <p>{{ item.brand }}</p>
+                                </div>
+                                <div>
+                                    <p class="text-gray-400">价格</p>
+                                    <p class="text-green-400">¥{{ item.price }}</p>
+                                </div>
+                                <div>
+                                    <p class="text-gray-400">购买日期</p>
+                                    <p class="text-gray-300">{{ item.purchase_date|date:"Y-m-d" }}</p>
+                                </div>
+                                <div>
+                                    <p class="text-gray-400">状态</p>
+                                    <p
+                                        class="
+                {% if item.status == 'normal' %}text-green-400
+    {% elif item.status == 'fault' %}text-red-400
+    {% elif item.status == 'maintaining' %}text-yellow-400
+    {% else %}text-gray-300{% endif %}" >
+                                        {{ item.get_status_display }}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- 操作按钮（hover 显示，默认隐藏） -->
+                            <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                <!-- 编辑按钮 -->
+                                <a href="/hostel/edit_assetchill/{{item.id}}"
+                                    class="px-3 py-1.5 bg-blue-500/20 text-blue-400 rounded-md text-sm flex items-center gap-1 hover:bg-blue-500/30 transition-colors">
+                                    <i class="fa fa-pencil"></i>
+                                    <span>编辑</span>
+                                </a>
+                                <!-- 删除按钮（带确认提示） -->
+                                {% url "delete_asset" item.id as delete_url %}
+                                <button onclick="confirmDelete('{{ delete_url|escapejs }}')"
+                                    class="px-3 py-1.5 bg-red-500/20 text-red-400 rounded-md text-sm flex items-center gap-1 hover:bg-red-500/30 transition-colors">
+                                    <i class="fa fa-trash"></i>
+                                    <span>删除</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <!-- 空数据提示 -->
+                <div class="bg-darker rounded-lg p-6 text-center text-gray-400">
+                    <i class="fa fa-folder-open-o text-2xl mb-2"></i>
+                    <p>暂无资产数据</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+         <!-- 消息提示 -->
+        {% if messages %}
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} mt-3">
+            {{ message }}
+        </div>
+        {% endfor %}
+        {% endif %}
+
+        <!-- 删除确认脚本 -->
+
+        <!-- 页脚 -->
+        <footer class="bg-darker/80 backdrop-blur-md border-t border-primary/20 py-4 mt-12">
+            <div class="container mx-auto px-4 text-center text-gray-400 text-sm">
+                <p>© 2025 ZIDD宿舍资产智能绑定管理系统 | 版权所有</p>
+            </div>
+        </footer>
+        <script>
+            function confirmDelete(deleteUrl) {
+                if (confirm('确定要删除该资产吗？此操作不可撤销！')) {
+                    // 发起删除请求（支持 GET/POST，推荐用 POST 更安全）
+                    // 方式1：GET 请求（简单但安全性较低）
+                    window.location.href = deleteUrl;
+
+                    // 方式2：POST 请求（推荐，需配合 CSRF 令牌）
+                    /*
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = deleteUrl;
+                    const csrfInput = document.createElement('input');
+                    csrfInput.type = 'hidden';
+                    csrfInput.name = 'csrfmiddlewaretoken';
+                    csrfInput.value = '{{ csrf_token }}';  // Django CSRF 令牌
+                    form.appendChild(csrfInput);
+                    document.body.appendChild(form);
+                    form.submit();
+                    */
+                }
+            }
+        </script>
+</body>
+
+</html>

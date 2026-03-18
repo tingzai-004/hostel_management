@@ -6,16 +6,16 @@ from django import forms
 from openpyxl import load_workbook
 from hostel.bootstrap import BootStrapModelForm
 import logging
-from django.core.paginator import Paginator
+from django.core.paginator import Paginator,PageNotAnInteger,EmptyPage
 from django.db.models import Count
 
 def statusUI(request):
     total = models.Room.objects.count()
-    normal_count = models.Room.objects.filter(room_status_id=2).count()
-    full_count = models.Room.objects.filter(room_status_id=1).count()
+    normal_count = models.Room.objects.filter(room_status_id=1).count()
+    full_count = models.Room.objects.filter(room_status_id=2).count()
     repair = models.Room.objects.filter(room_status_id=3).count()
     dath=models.Room.objects.filter(room_status_id=4).count()  # 修复：加括号()
-    all_room_types=models.room_type.objects.all()
+    all_room_types=models.room_type.objects.filter(status=True)
     # room_two=models.room_type.objects.filter(name="2人间").first()
     # room_six=models.room_type.objects.filter(name="6人间").first()
     # # bed_count_two=room_two.bed_count
@@ -26,21 +26,16 @@ def statusUI(request):
     gender3=models.Room.objects.filter(gender="1",room_status_id=2).count()
     gender4=models.Room.objects.filter(gender="2",room_status_id=2).count()
     records = models.occupancyrecord.objects.select_related('user__gender').all()
+    people=models.occupancyrecord.objects.filter(status="0").count()
+    area=models.dorm.objects.all()
+    dorm=models.area.objects.all()
 
 # 然后在内存中进行过滤和计数
     women = records.filter(status='0',user__gender_id="2").count()
     men = records.filter(status='0',user__gender_id="1").count()
 
-    new_type_id = request.GET.get("new_type_id")
-    new_room_count = None
-    new_type_name = None
     
-    if new_type_id:
-        # 根据ID查询新添加的房型
-        new_type = models.room_type.objects.get(id=new_type_id)
-        new_type_name = new_type.name
-        new_room_count = models.Room.objects.filter(room_type=new_type).count()
-        # room_count2 = models.Room.objects.filter(status="0",room_type=new_type).count()
+
 
 
 
@@ -59,12 +54,14 @@ def statusUI(request):
 
         # 按楼栋筛选
         if current_dorm:
-            rooms = rooms.filter(dorm=current_dorm)
+            rooms = rooms.filter(dorm=int(current_dorm))
 
         if current_area:
-            rooms=rooms.filter(dorm__area__name=current_area)
+            rooms=rooms.filter(dorm__area__id=int(current_area))
 
         # 传递筛选后的 rooms 到模板
+       
+
         context = {
             "total": total,
             "normal_count": normal_count,
@@ -85,9 +82,21 @@ def statusUI(request):
             "women":women,
             "men":men,
             "all_room_types": all_room_types,
-            "new_type_name": new_type_name,  # 新添加的房型名称
-            "new_room_count": new_room_count,
+            'people':people,
+            "area":area,
+            "dorm":dorm,
+            
             # "room_count": room_count2,
 
         }
+        room_types = models.room_type.objects.all()
+    # 为每个房型单独统计数量（用前面教的循环方法）
+        for rt in room_types:
+            rt.total_count = models.Room.objects.filter(room_type=rt).count()
+            rt.a_count = models.Room.objects.filter(room_type=rt, room_status='2').count()
+        context['room_types'] = room_types
+        for r in rooms:
+            r.people=models.occupancyrecord.objects.filter(room=r,status='0').count()      
+
         return render(request, "statusUI.html", context)
+    

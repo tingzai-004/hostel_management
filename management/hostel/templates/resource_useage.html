@@ -8,7 +8,7 @@
             <div>
                 <a href="/hostel/add_resource/" class="btn btn-add me-2">新增</a>
                 <a href="/hostel/add_all_resource/" class="btn btn-add">批量上传</a>
-                <button id="show_batch_delete" class="btn btn-danger">批量删除</button>
+                <!-- <button id="show_batch_delete" class="btn btn-danger">批量删除</button> -->
                 
             </div>
         </div>
@@ -31,11 +31,13 @@
                         <thead>
                             
                             <tr>
-                                <th><input type="checkbox" id="select_all" style="display: none;"> 全选</th>
+                                <!-- <th><input type="checkbox" id="select_all" style="display: none;"> 全选</th> -->
                                 <th>序号</th>
                                <th>房间</th>
                                 <th>计费项目</th>
-                                <th>月份</th>
+                               
+                                <th>月初计数</th>
+                                <th>月底计数</th>
                                 <th>用量</th>
                                 <th>创建日期</th>
                                 <th>录入人</th>
@@ -46,11 +48,13 @@
                         <tbody>
                             {% for i in c_page%}
                             <tr>
-                                <td><input type="checkbox" name="ids" value="{{ i.id }}" style="display: none;"></td>
+                                <!-- <td><input type="checkbox" name="ids" value="{{ i.id }}" style="display: none;"></td> -->
                                 <td>{{i.id}}</td>
                                 <td>{{i.room}}</td> 
                                 <td>{{i.feetype}}</td> 
-                                <td>{{i.date}}</td>   
+                               
+                                <td>{{i.start}}</td>
+                                <td>{{i.end}}</td>
                                 <td>{{i.usege}}</td>
                                 <td>{{i.check_in_date}}</td>   
                                 <td>{{i.check_people}}</td>                        
@@ -77,7 +81,7 @@
     {% endif %}
 
                     <!-- 分页 -->
-                     <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex justify-content-between align-items-center">
     <div>显示{{ c_page.start_index }} 到 {{ c_page.end_index }} ,共{{paginator.count}}条记录</div>
     <nav aria-label="Page navigation example">
         <ul class="pagination">
@@ -88,22 +92,12 @@
 
             <!-- 只显示当前页、第1页、最后1页（避免无效页） -->
             
-
             <!-- 中间只显示当前页（如果当前页不是1或最后1页） -->
-            {% if paginator.num_pages <= 3 %}
-                {% for num in paginator.page_range %}
-                    <li class="page-item {% if c_page.number == num %}active{% endif %}">
-                        <a class="page-link" href="/hostel/resource_useage?page={{ num }}">{{ num }}</a>
-                    </li>
-                {% endfor %}
-            {% else %}
-                <!-- 总页数>3时，只显示1、2、3 -->
-                {% for num in page_nums %}
-                    <li class="page-item {% if c_page.number == num %}active{% endif %}">
-                        <a class="page-link" href="/hostel/resource_useage?page={{ num }}">{{ num }}</a>
-                    </li>
-                {% endfor %}
-            {% endif %}
+            {% for num in display_page %}
+        <li class="page-item {% if c_page.number == num %}active{% endif %}">
+            <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+        </li>
+    {% endfor %}
 
             <!-- 下一页 -->
             <li class="page-item {% if not c_page.has_next %}disabled{% endif %}">

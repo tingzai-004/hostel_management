@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% if form.instance.id %}编辑资产{% else %}添加资产{% endif %} - 宿舍资产智能绑定系统</title>
+  <!-- 引入依赖 -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <!-- 自定义Tailwind配置（和主页面一致） -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#6366f1', // 主色调（紫蓝渐变）
+            secondary: '#8b5cf6',
+            dark: '#1e293b',
+            darker: '#0f172a',
+            card: '#1e293b80',
+          },
+          fontFamily: {
+            inter: ['Inter', 'system-ui', 'sans-serif'],
+          },
+        },
+      }
+    }
+  </script>
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .gradient-border {
+        position: relative;
+        border-radius: 0.75rem;
+      }
+      .gradient-border::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: 0.75rem;
+        padding: 1px;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+        pointer-events: none;
+      }
+      .input-focus {
+        @apply focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none;
+      }
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-darker to-dark min-h-screen font-inter text-gray-100">
+  <!-- 顶部导航（和主页面一致） -->
+  <nav class="bg-darker/80 backdrop-blur-md border-b border-primary/20 sticky top-0 z-50">
+    <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+      <div class="flex items-center gap-2">
+        <i class="fa fa-building-o text-primary text-2xl"></i>
+        <h1 class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
+          ZIDD宿舍资产智能绑定系统
+        </h1>
+      </div>
+      
+      <div class="flex items-center gap-4">
+        <button class="px-3 py-1.5 rounded-full bg-primary/10 hover:bg-primary/20 transition-colors">
+          <i class="fa fa-search mr-1"></i>搜索
+        </button>
+        <button class="px-3 py-1.5 rounded-full bg-secondary/10 hover:bg-secondary/20 transition-colors">
+          <i class="fa fa-cog mr-1"></i>设置
+        </button>
+        <a href="/hostel/asset/" class="px-3 py-1.5 rounded-full bg-secondary/10 hover:bg-secondary/20 transition-colors" style="text-decoration: none;">
+          <i class="fas fa-arrow-left"></i>返回列表
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- 主内容区 -->
+  <main class="container mx-auto px-4 py-8">
+    <!-- 表单卡片 -->
+    <div class="max-w-2xl mx-auto">
+      <div class="gradient-border bg-card p-6 md:p-8">
+        <div class="mb-6">
+          <h2 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
+            {% if form.instance.id %}编辑资产{% else %}添加新资产{% endif %}
+          </h2>
+          <p class="text-gray-400 mt-1">{% if form.instance.id %}修改资产信息{% else %}填写资产详情并绑定到宿舍{% endif %}</p>
+        </div>
+
+        <!-- ModelForm 表单（自动渲染所有字段） -->
+                <form method="post" class="space-y-7">
+          {% csrf_token %}
+
+          {% if form.non_field_errors %}
+            <div class="p-4 rounded-lg bg-red-900/30 border border-red-500/50 text-red-300 text-sm">
+              {{ form.non_field_errors }}
+            </div>
+          {% endif %}
+
+          <!-- 第一行：资产编码 + 资产名称 -->
+        
+
+            {{ form.name.errors }}
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-2">{{ form.name.label }} {% if form.name.field.required %}<span class="text-red-400">*</span>{% endif %}</label>
+              {{ form.name }}
+            </div>
+          </div>
+
+          <!-- 第二行：品牌 型号 购买日期 价格 -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-2">{{ form.brand.label }}</label>
+              {{ form.brand }}
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-2">{{ form.model.label }}</label>
+              {{ form.model }}
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-2">{{ form.purchase_date.label }}</label>
+              {{ form.purchase_date }}
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-2">{{ form.price.label }}</label>
+              {{ form.price }}
+            </div>
+          </div>
+
+          <!-- 第三行：状态 绑定时间 宿舍 类别 -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label class="block text-sm font-medium text-gray-300 mb-2">{{ form.status.label }}</label>
+              {{ form.status }}
+            </div>
+
+          <!-- 按钮 -->
+          <div class="flex flex-col sm:flex-row gap-4 pt-6 border-t border-gray-700/40">
+            <button type="submit" class="flex-1 px-8 py-3.5 rounded-xl bg-gradient-to-r from-primary to-secondary hover:from-secondary hover:to-primary transition-all text-white font-semibold shadow-lg flex items-center justify-center gap-2">
+              <i class="fa fa-save"></i>
+              {% if form.instance.id %}保存修改{% else %}确认{% endif %}
+            </button>
+            <a href="/hostel/asset/" class="px-8 py-3.5 rounded-xl bg-gray-800/70 hover:bg-gray-700 transition-colors font-medium text-center border border-gray-700">
+              取消返回
+            </a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </main>
+    <!-- 消息提示 -->
+        {% if messages %}
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} mt-3">
+            {{ message }}
+        </div>
+        {% endfor %}
+        {% endif %}
+
+  <!-- 页脚（和主页面一致） -->
+  <footer class="bg-darker/80 backdrop-blur-md border-t border-primary/20 py-4 mt-12">
+    <div class="container mx-auto px-4 text-center text-gray-400 text-sm">
+      <p>© 2025 宿舍资产智能绑定管理系统 | 版权所有</p>
+    </div>
+  </footer>
+
+  <!-- ModelForm 控件样式（自动适配所有字段） -->
+ <style>
+  /* ========= 强制覆盖所有输入框背景和文字颜色 ========= */
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea {
+    background-color: #0f172a !important;   /* 超深蓝黑背景 */
+    color: #e2e8f0 !important;              /* 浅灰白文字 */
+    border: 1px solid #374151 !important;
+    caret-color: #e2e8f0 !important;
+  }
+
+  /* 占位文字颜色 */
+  input::placeholder,
+  textarea::placeholder {
+    color: #94a3b8 !important;
+    opacity: 1;
+  }
+
+  /* 日期选择器文字和图标（所有浏览器都生效） */
+  input[type="date"] {
+    color: #e2e8f0 !important;
+  }
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(0.8);
+    opacity: 0.8;
+  }
+  input[type="date"]:invalid {
+    color: #94a3b8 !important;   /* “请选择日期”那几个字也变灰 */
+  }
+
+  /* 下拉框箭头强制可见 */
+  select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23cbd5e1' viewBox='0 0 16 16'%3E%3Cpath d='M8 11l4-4H4l4 4z'/%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 12px center !important;
+    padding-right: 40px !important;
+  }
+
+  /* 聚焦时高亮边框 */
+  input:focus,
+  select:focus,
+  textarea:focus {
+    outline: none !important;
+    border-color: #6366f1 !important;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3) !important;
+  }
+
+  /* 禁用状态 */
+  input:disabled,
+  select:disabled,
+  textarea:disabled {
+    background-color: #1e293b !important;
+    color: #64748b !important;
+    opacity: 0.7;
+  }
+</style>
+</body>
+</html>

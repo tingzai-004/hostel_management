@@ -68,11 +68,11 @@ def add_admin(request):
         return render(request,"add_area.html",{"form":form,"title":title})
     form=adminmodel(data=request.POST)
     if form.is_valid():
-        data=request.session.get('info')
-        if data==None:
-            return HttpResponse("请先登录")
-        name=data.get('name')
-        logger.info('超级管理员%s添加了%s为管理员'%(name,form.cleaned_data.get('name')))
+        # data=request.session.get('info')
+        # if data==None:
+        #     return HttpResponse("请先登录")
+        # name=data.get('name')
+        # logger.info('超级管理员%s添加了%s为管理员'%(name,form.cleaned_data.get('name')))
         form.save()
         return redirect("/admin_list/")
     return render(request,"add_area.html",{"form":form,"error":form.errors,'title':"添加管理员"})

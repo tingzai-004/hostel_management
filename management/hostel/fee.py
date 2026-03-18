@@ -7,57 +7,77 @@ from openpyxl import load_workbook
 from hostel.bootstrap import BootStrapModelForm
 import logging
 from django.core.paginator import Paginator,PageNotAnInteger,EmptyPage
-
+from django.db.models import Count,Sum
+from django.contrib import messages
 from hostel.person import parse_date
 from decimal import Decimal,DecimalException
+import decimal
 logger=logging.getLogger('management')
 
 class feetypemodel(BootStrapModelForm):
+    bootstrap_exclude=["is_sign"]
     class Meta:
         model=models.feetype
-        fields=['name','bit','cdate','status','fee']
-def feetype(request):#计费类型
+        fields=['name','bit','cdate','status','fee','area',"effective_date"]
+def fee_type(request):#计费类型
     search_data = request.GET.get('q', '')
     query = models.feetype.objects.all()
     if search_data:
-        query = query.filter(name__contains=search_data)  # 搜索过滤
+        query = query.filter(area__name__contains=search_data )  # 搜索过滤
 
     # 2. 分页配置（每页5条）
+    page_number = request.GET.get('page', 1)
     paginator = Paginator(query, 5)
-    page_num = request.GET.get('page', 1)  # 拿页码，默认1
+    page_obj = paginator.get_page(page_number)
+    current = page_obj.number
+    total_pages = paginator.num_pages
 
-    # 3. 关键：容错处理（不管页码错成啥样，都返回有效页）
+    # 核心算法：始终显示当前页前后各1页，共3个（边界处理）
+    if total_pages <= 3:
+        display_pages = list(range(1, total_pages + 1))
+    else:
+        if current <= 2:
+            display_pages = [1, 2, 3]
+        elif current >= total_pages - 1:
+            display_pages = [total_pages - 2, total_pages - 1, total_pages]
+        else:
+            display_pages = [current - 1, current, current + 1]
     try:
-        c_page = paginator.page(page_num)  # 尝试拿指定页
-    except PageNotAnInteger:  # 页码不是数字（比如?page=abc）
-        c_page = paginator.page(1)  # 给第1页
-    except EmptyPage:  # 页码超出范围（比如总1页，?page=2）
-        c_page = paginator.page(paginator.num_pages)  # 给最后1页
+        c_page = paginator.page(page_number)
+    except PageNotAnInteger:
+        c_page = paginator.page(1)
+    except EmptyPage:
+        c_page = paginator.page(paginator.num_pages)
 
     # 4. 传数据到模板
     return render(request, 'fee_type.html', {
         'c_page': c_page,
         'paginator': paginator,
         'search_data': search_data,
-        "titel":"费用类型"
+        "titel":"费用类型",
+        "display_pages":display_pages,
     })
-   
+##1  
 
 def add_feetype(request):
-    if request.method=="GET":
-        form=feetypemodel()
-        
-        return render(request,"add_area.html",{"form":form,"titel":"添加计费类型"})
-    form=feetypemodel(data=request.POST)
+    if request.method == "GET":
+        form = feetypemodel()
+        return render(request, "add_area.html", {"form": form, "titel": "添加计费类型"})
+    
+    form = feetypemodel(data=request.POST)
     if form.is_valid():
-        # data=request.session.get('info')
-        # if data==None:
-        #     return HttpResponse("请先登录")
-        # name=data.get('name')
-        # logger.info('%s添加了部门'%(name))
+        # feetype_obj = form.save()  # 保存新的计费类型
+        # # 新计费类型需要触发所属区域所有房间的当月费用计算
+        # rooms = Room.objects.filter(dorm__area=feetype_obj.area)  # 该区域下所有房间
+        # current_year = feetype_obj.cdate.year  # 用创建时间的年月
+        # current_month = feetype_obj.cdate.month
+        
+        # for room in rooms:
+        #     recalculate_fee_and_sharing(room, current_year, current_month)
         form.save()
+        
         return redirect("/hostel/fee_type/")
-    return render(request,"add_area.html",{"form":form,"error":form.errors,"titel":"添加计费类型"})
+    return render(request, "add_area.html", {"form": form, "error": form.errors, "titel": "添加计费类型"})
 
 def del_feetype(request,id):
     row_object=models.feetype.objects.filter(id=id).first()
@@ -71,67 +91,52 @@ def del_feetype(request,id):
     row_object.delete()
     return redirect("/hostel/fee_type/")
 
-def edit_feetype(request,id):
-    row_object=models.feetype.objects.filter(id=id).first()
-    if row_object==None:
-        return HttpResponse("要修改的数据不存在")
-    if request.method=='GET':
-        titel="修改-{}".format(row_object.name)
-        form=feetypemodel(instance=row_object)
-        return render(request,'add_area.html',{"form":form,"titel":titel})
-    form=feetypemodel(data=request.POST,instance=row_object)
+# def edit_feetype(request,id):
+#     row_object=models.feetype.objects.filter(id=id).first()
+#     if row_object==None:
+#         return HttpResponse("要修改的数据不存在")
+#     if request.method=='GET':
+#         titel="修改-{}".format(row_object.name)
+#         form=feetypemodel(instance=row_object)
+#         return render(request,'add_area.html',{"form":form,"titel":titel})
+#     form=feetypemodel(data=request.POST,instance=row_object)
+#     if form.is_valid():
+#         # data=request.session.get('info')
+#         # if data==None:
+#         #     return HttpResponse("请先登录")
+#         # name=data.get('name')
+#         # logger.info('%s更新了部门数据'%(name))
+#         form.save()
+#         return redirect("/hostel/fee_type/")
+#     return render(request,'add_area.html',{"form":form,"error":form.errors,"titel":titel})
+
+def edit_feetype(request, id):
+    feetype_obj = get_object_or_404(models.feetype, id=id)
+    if request.method == 'GET':
+        titel = f"修改-{feetype_obj.name}"
+        form = feetypemodel(instance=feetype_obj)
+        return render(request, 'add_area.html', {"form": form, "titel": titel})
+    
+    form = feetypemodel(data=request.POST, instance=feetype_obj)
     if form.is_valid():
-        # data=request.session.get('info')
-        # if data==None:
-        #     return HttpResponse("请先登录")
-        # name=data.get('name')
-        # logger.info('%s更新了部门数据'%(name))
+        # updated_feetype = form.save()  # 保存修改后的计费类型（单价/状态已变更）
+        
+        # # 关键：触发该区域下所有房间的费用重新计算
+        # area = updated_feetype.area
+        # rooms = Room.objects.filter(dorm__area=area)  # 该区域所有房间
+        
+        # for room in rooms:
+        #     # 取该房间最近3个月的费用记录（可调整数量）
+        #     recent_fee_records = fee_record_one.objects.filter(room=room).order_by('-date')[:3]
+        #     for fee_record in recent_fee_records:
+        #         recalculate_fee_and_sharing(
+        #             room=room,
+        #             year=fee_record.date.year,
+        #             month=fee_record.date.month
+        #         )
         form.save()
         return redirect("/hostel/fee_type/")
-    return render(request,'add_area.html',{"form":form,"error":form.errors,"titel":titel})
-
-
-
-
-class fee_recordmodel(BootStrapModelForm):
-    class Meta:
-        model=models.fee_record_one
-        fields="__all__"
-    
-    
-    def clean(self):
-        cleaned_data = super().clean()
-        room = cleaned_data.get("room")
-        date = cleaned_data.get("date")
-        power = cleaned_data.get("power")
-        water = cleaned_data.get("water")
-
-        # 1. 获取“用量”：从 resource_useage 中查询
-        dian_usage_record = models.resource_useage.objects.filter(
-            room=room,
-            date=date,
-            feetype=power
-        ).first()
-        water_usage_record = models.resource_useage.objects.filter(
-            room=room,
-            date=date,
-            feetype=water
-        ).first()
-        
-        
-
-        # 2. 获取“费用单价”：从 feetype 中获取
-        unit_price = feetype.fee
-        try:
-            unit_price = Decimal(unit_price)
-        except DecimalException:
-            self.add_error("amount", "费用单价格式错误，请检查计费项目的设置")
-            return cleaned_data
-
-        # 3. 计算金额并赋值
-        cleaned_data["power"] =round(dian_usage_record.usege * unit_price,2) 
-        cleaned_data["water"] =round(water_usage_record.usege * unit_price,2)
-        return cleaned_data
+    return render(request, 'add_area.html', {"form": form, "error": form.errors, "titel": titel})
 
 
 
@@ -140,54 +145,65 @@ def fee_recode(request):#费用细则
     search_data = request.GET.get('q', '')
     query = models.fee_record_one.objects.all()
     if search_data:
-        query = query.filter(room__room_name__contains=search_data)  # 搜索过滤
+        query = query.filter(room__room_name__contains=search_data)
 
-    # 2. 分页配置（每页5条）
+    
+    unique_fee_names = models.feetype.objects.filter(status="启用").values_list('name', flat=True).distinct()
+    active_fees = [{'name': name} for name in unique_fee_names]
+
+    # 分页配置（不变）
+    page_number = request.GET.get('page', 1)
     paginator = Paginator(query, 5)
-    page_num = request.GET.get('page', 1)  # 拿页码，默认1
+    page_obj = paginator.get_page(page_number)
+    current = page_obj.number
+    total_pages = paginator.num_pages
 
-    # 3. 关键：容错处理（不管页码错成啥样，都返回有效页）
-    try:
-        c_page = paginator.page(page_num)
-           # 尝试拿指定页
-    except PageNotAnInteger:  # 页码不是数字（比如?page=abc）
-        c_page = paginator.page(1)  # 给第1页
-    except EmptyPage:  # 页码超出范围（比如总1页，?page=2）
-        c_page = paginator.page(paginator.num_pages)  # 给最后1页
-    if paginator.num_pages <= 3:
-            page_nums = paginator.page_range  # 所有页码
+    # 核心算法：始终显示当前页前后各1页，共3个（边界处理）
+    if total_pages <= 3:
+        display_pages = list(range(1, total_pages + 1))
     else:
-            page_nums = [1, 2, 3]
-
-    # 4. 传数据到模板
+        if current <= 2:
+            display_pages = [1, 2, 3]
+        elif current >= total_pages - 1:
+            display_pages = [total_pages - 2, total_pages - 1, total_pages]
+        else:
+            display_pages = [current - 1, current, current + 1]
+    try:
+        c_page = paginator.page(page_number)
+    except PageNotAnInteger:
+        c_page = paginator.page(1)
+    except EmptyPage:
+        c_page = paginator.page(paginator.num_pages)
     return render(request, 'fee_recode.html', {
         'c_page': c_page,
         'paginator': paginator,
         'search_data': search_data,
         "titel":"宿舍缴费记录",
-        "page_nums":page_nums,
+        "active_fees":active_fees,
+        'display_pages': display_pages,  # 去重后的表头
     })
 
 
+
+class fee_recordmodel(BootStrapModelForm):
+    class Meta:
+        model=models.fee_record_one
+        fields=['status']
+        widgets={
+            'date':forms.TextInput(attrs={'placeholder':'如2025-11'})
+        }
+
 ##增加删除
+##1
 def add_fee_record(request):
-    if request.method=="GET":
-        form=fee_recordmodel()
-        
-        return render(request,"add_area.html",{"form":form,"titel":"添加费用细则"})
-    form=fee_recordmodel(data=request.POST)
-    if form.is_valid():
-        data=request.session.get('info')
-        if data==None:
-            return HttpResponse("请先登录")
-        name=data.get('name')
-        logger.info('%s添加了部门'%(name))
-        form.save()
-        return redirect("/hostel/fee_record/")
-    return render(request,"add_area.html",{"form":form,"error":form.errors,"titel":"添加费用细则"})
+    return render(request,'add_area.html')
+    
+
+
+   
 
 def del_fee_record(request,id):
-    row_object=models.fee_record.objects.filter(id=id).first()
+    row_object=models.fee_record_one.objects.filter(id=id).first()
     if row_object==None:
         return HttpResponse("数据不存在")
     data=request.session.get('info')
@@ -200,7 +216,7 @@ def del_fee_record(request,id):
 
 #更新和批量添加
 def edit_fee_record(request,id):
-    row_object=models.fee_record.objects.filter(id=id).first()
+    row_object=models.fee_record_one.objects.filter(id=id).first()
     if row_object==None:
         return HttpResponse("要修改的数据不存在")
     if request.method=='GET':
@@ -316,7 +332,7 @@ def delete_all_fee_record(request):
             messages.error(request,"请选择要删除人员")
             return redirect("/hostel/fee_record/")
         try:
-            models.fee_record.objects.filter(id__in=ids).delete()##delete少个括号不能删除
+            models.fee_record_one.objects.filter(id__in=ids).delete()##delete少个括号不能删除
             logger.info(f"管理员{request.session.get('info', {}).get('name')}批量删除了记录")
         
             messages.success(request,f"成功删除{len(ids)}条数据")
@@ -326,341 +342,66 @@ def delete_all_fee_record(request):
     if request.method=="GET":
         return redirect("/hostel/fee_record/")
 
-        
-
-
-
-
-
-class useagemodel(BootStrapModelForm):
-    class Meta:
-        model = models.resource_useage
-        fields = '__all__'
-
-
-
-def resource_useage(request):#资源使用量
-    search_data = request.GET.get('q', '')
-    query = models.resource_useage.objects.all()
-    if search_data:
-        query = query.filter(room__room_name__contains=search_data)  # 搜索过滤
-
-    # 2. 分页配置（每页5条）
-    paginator = Paginator(query, 5)
-    page_num = request.GET.get('page', 1)  # 拿页码，默认1
-
-    # 3. 关键：容错处理（不管页码错成啥样，都返回有效页）
-    try:
-        c_page = paginator.page(page_num)
-          # 尝试拿指定页
-    except PageNotAnInteger:  # 页码不是数字（比如?page=abc）
-        c_page = paginator.page(1)  # 给第1页
-    except EmptyPage:  # 页码超出范围（比如总1页，?page=2）
-        c_page = paginator.page(paginator.num_pages)  # 给最后1页
-    if paginator.num_pages <= 3:
-            page_nums = paginator.page_range  # 所有页码
-    else:
-            page_nums = [1, 2, 3] 
-
-    # 4. 传数据到模板
-    return render(request, 'resource_useage.html', {
-        'c_page': c_page,
-        'paginator': paginator,
-        'search_data': search_data,
-        "titel":"资源用量记录",
-        "page_nums":page_nums,
-    })
-
-
-def add_resource(request):
-    if request.method == "GET":
-        form = useagemodel()
-        return render(request, "add_area.html", {"form": form, "titel": "添加资源用量"})
-    form = useagemodel(data=request.POST)
-    if form.is_valid():
-            form.save()
-            return redirect("/hostel/resource_useage/")
-    return render(request, "add_area.html", {"form": form, "error": form.errors, "titel": "添加资源用量"})
-
-def del_resource(request, id):
-    row_object = models.resource_useage.objects.filter(id=id).first()
-    if row_object is None:
-            return HttpResponse("数据不存在")
-    row_object.delete()
-    return redirect("/hostel/resource_useage/")
-
-def edit_resource(request, id):
-    row_object = models.resource_useage.objects.filter(id=id).first()
-    if row_object is None:
-            return HttpResponse("要修改的数据不存在")
-    if request.method == 'GET':
-        titel = "修改-{}".format(row_object.room)
-        form = useagemodel(instance=row_object)
-        return render(request, 'add_area.html', {"form": form, "titel": titel})
-    form = useagemodel(data=request.POST, instance=row_object)
-    if form.is_valid():
-            form.save()
-            return redirect("/hostel/resource_useage/")
-    return render(request, 'add_area.html', {"form": form, "error": form.errors, "titel": titel})
-
-
-
-
-def add_all_resource(request):
-    if request.method == 'GET':
-        return render(request, 'add_all_area.html')
-
-    excel_file = request.FILES.get('file')
-    if not excel_file:
-        return HttpResponse("请选择文件")
-
-    wb = load_workbook(excel_file)
-    sheet = wb.active
-    errors = []  # 收集错误信息
-
-    for idx, row in enumerate(sheet.iter_rows(min_row=2, values_only=True), start=2):
-        try:
-            # 1. 解析房间（外键：room）
-            room_name = row[0]
-            if not room_name:
-                errors.append(f"第{idx}行错误：房间号为空，无法关联")
-                continue
-            room = models.Room.objects.filter(room_name=room_name).first()
-            if not room:
-                errors.append(f"第{idx}行错误：房间 '{room_name}' 不存在")
-                continue
-
-            # 2. 解析计费类型（外键：feetype）
-            feetype_name = row[3]
-            if not feetype_name:
-                errors.append(f"第{idx}行错误：计费类型为空")
-                continue
-            feetype = models.feetype.objects.filter(name=feetype_name).first()
-            if not feetype:
-                errors.append(f"第{idx}行错误：计费类型 '{feetype_name}' 不存在")
-                continue
-
-            # 3. 解析计算月份（date，字符串类型）
-            date = row[1]
-            if not date:
-                errors.append(f"第{idx}行错误：计算月份为空")
-                continue
-            date = str(date).strip()
-
-            # 4. 解析用量（usege，Decimal类型）
-            usege = row[2]
-            if not usege:
-                usege = None  # 模型允许空值，空时设为None
-            else:
-                usege = float(usege)  # 转为浮点数，兼容DecimalField
-
-            # 5. 解析录入日期（check_in_date，日期类型）
-            try:
-                check_in_date = parse_date(row[4])
-            except ValueError as e:
-                errors.append(f"第{idx}行错误：录入日期解析失败 - {str(e)}")
-                continue
-
-            # 6. 解析录入人（check_people）
-            check_people = row[5]
-            if not check_people:
-                errors.append(f"第{idx}行错误：录入人为空")
-                continue
-            check_people = str(check_people).strip()
-
-            # 7. 创建资源使用记录（严格对齐模型字段名！）
-            models.resource_useage.objects.create(
-                room=room,
-                feetype=feetype,
-                date=date,
-                usege=usege,
-                check_in_date=check_in_date,
-                check_people=check_people
-            )
-
-        except Exception as e:
-            errors.append(f"第{idx}行错误：{str(e)}")
-
-    if errors:
-        return HttpResponse("导入失败：\n" + "\n".join(errors))
-    
-    logger.info(f"{request.session.get('info', {}).get('name')}批量添加资源使用记录")
-    return redirect('/hostel/resource_useage/')
-
-from django.contrib import messages
-##资源使用批量删除
-def delete_all_resource(request):
-    if request.method == 'POST':
-        # 获取勾选的person ID列表（前端表单name为"ids"）
-        ids = request.POST.getlist('ids')
-        if not ids:
-            messages.error(request, "请选择要删除的人员")
-            return redirect('/hostel/resource_useage/')
-        
-        try:
-            # 批量删除选中的记录
-            models.resource_useage.objects.filter(id__in=ids).delete()
-            messages.success(request, f"成功删除 {len(ids)} 条人员记录")
-            logger.info(f"管理员{request.session.get('info', {} ).get('name')}删除了{len(ids)}条资源用量记录")
-        except Exception as e:
-            messages.error(request, f"删除失败：{str(e)}")
-        
-        return redirect('/hostel/resource_useage/')
-    
-    # 非POST请求直接跳转回列表页
-    return redirect('/hostel/resource_useage/')
-
-
-
-
-
 
    
 
-class standardmodel(BootStrapModelForm):
-    class Meta:
-        model=models.standard
-        fields="__all__"
 
-def standard(request):#计费标准
-    search_data = request.GET.get('q', '')
-    query = models.standard.objects.all()
-    if search_data:
-        query = query.filter(name__contains=search_data)  # 搜索过滤
+       
 
-    # 2. 分页配置（每页5条）
-    paginator = Paginator(query, 5)
-    page_num = request.GET.get('page', 1)  # 拿页码，默认1
+from django.shortcuts import render
+from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
+from django.db.models import F
+from . import models
 
-    # 3. 关键：容错处理（不管页码错成啥样，都返回有效页）
-    try:
-        c_page = paginator.page(page_num)  # 尝试拿指定页
-    except PageNotAnInteger:  # 页码不是数字（比如?page=abc）
-        c_page = paginator.page(1)  # 给第1页
-    except EmptyPage:  # 页码超出范围（比如总1页，?page=2）
-        c_page = paginator.page(paginator.num_pages)  # 给最后1页
-
-    # 4. 传数据到模板
-    return render(request, 'standard.html', {
-        'c_page': c_page,
-        'paginator': paginator,
-        'search_data': search_data,
-        "titel":"计费标准"
-    })
-
-def add_standard(request):
-        if request.method == "GET":
-            form = standardmodel()
-            return render(request, "add_area.html", {"form": form, "titel": "添加计费标准"})
-        form = standardmodel(data=request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect("/hostel/standard/")
-        return render(request, "add_area.html", {"form": form, "error": form.errors, "titel": "添加计费标准"})
-
-def del_standard(request, id):
-        row_object = models.standard.objects.filter(id=id).first()
-        if row_object is None:
-            return HttpResponse("数据不存在")
-        row_object.delete()
-        return redirect("/hostel/standard/")
-
-def edit_standard(request, id):
-        row_object = models.standard.objects.filter(id=id).first()
-        if row_object is None:
-            return HttpResponse("要修改的数据不存在")
-        if request.method == 'GET':
-            titel = "修改-{}".format(row_object.room)
-            form = standardmodel(instance=row_object)
-            return render(request, 'add_area.html', {"form": form, "titel": titel})
-        form = standardmodel(data=request.POST, instance=row_object)
-        if form.is_valid():
-            form.save()
-            return redirect("/hostel/standard/")
-        return render(request, 'add_area.html', {"form": form, "error": form.errors, "titel": titel})
 
 class feesharingmodel(BootStrapModelForm):
     class Meta:
-        model=models.feesharing
-        fields=["occupancyrecord","fee_type","fee_record","feesharings","status","start_date","end_date"]
-        
+        model=models.sharing
+        fields=["user","fee_record"]
 
-    def clean(self):
-        # 修正拼写：fee_record（原fee_recode是错的）
-        fee_record = self.cleaned_data.get("fee_record")  
-        if fee_record:
-            total_amount = fee_record.amount
-            print("total_amount:", total_amount)
-            room = fee_record.room
-            room_people = room.people
-            print("room_people:", room_people)
-            if room_people > 0:
-                sharing_amount = round(total_amount / room_people,2)
-                print("sharing_amount:", sharing_amount)
-                self.cleaned_data["feesharings"] = sharing_amount
-                print(self.cleaned_data["feesharings"])
-            else:
-                self.add_error("feesharings", "房间人数为0,无法计算分摊")
-                print("Error: 房间人数为0,无法计算分摊")
-        return self.cleaned_data
-
-
-
-
-    
-def feesharing(request):#feesharing费用分摊
+def sharing(request):
     search_data = request.GET.get('q', '')
-    query = models.feesharing.objects.all()
+    query = models.sharing.objects.all()
     if search_data:
-        query = query.filter(occpancyrecord__user__contains=search_data)  # 搜索过滤
+        query = query.filter(user__occupancyrecord__name__contains=search_data)
+    unique_fee_names = models.feetype.objects.filter(status="启用").values_list('name', flat=True).distinct()
+    active_fees = [{'name': name} for name in unique_fee_names]
 
-    # 2. 分页配置（每页5条）
+    # 分页配置（不变）
+    page_number = request.GET.get('page', 1)
     paginator = Paginator(query, 5)
-    page_num = request.GET.get('page', 1)  # 拿页码，默认1
+    page_obj = paginator.get_page(page_number)
+    current = page_obj.number
+    total_pages = paginator.num_pages
 
-    # 3. 关键：容错处理（不管页码错成啥样，都返回有效页）
-    try:
-        c_page = paginator.page(page_num)
-        if paginator.num_pages <= 3:
-            page_nums = paginator.page_range  # 所有页码
-        else:
-            page_nums = [1, 2, 3]   # 尝试拿指定页
-    except PageNotAnInteger:  # 页码不是数字（比如?page=abc）
-        c_page = paginator.page(1)  # 给第1页
-    except EmptyPage:  # 页码超出范围（比如总1页，?page=2）
-        c_page = paginator.page(paginator.num_pages)  # 给最后1页
-    if paginator.num_pages <= 3:
-            page_nums = paginator.page_range  # 所有页码
+    # 核心算法：始终显示当前页前后各1页，共3个（边界处理）
+    if total_pages <= 3:
+        display_pages = list(range(1, total_pages + 1))
     else:
-            page_nums = [1, 2, 3]
-
-    # 4. 传数据到模板
+        if current <= 2:
+            display_pages = [1, 2, 3]
+        elif current >= total_pages - 1:
+            display_pages = [total_pages - 2, total_pages - 1, total_pages]
+        else:
+            display_pages = [current - 1, current, current + 1]
+    try:
+        c_page = paginator.page(page_number)
+    except PageNotAnInteger:
+        c_page = paginator.page(1)
+    except EmptyPage:
+        c_page = paginator.page(paginator.num_pages)
     return render(request, 'feesharing.html', {
         'c_page': c_page,
         'paginator': paginator,
         'search_data': search_data,
-        "titel":"费用分摊记录",
-        "page_nums":page_nums,
+        "titel":"宿舍缴费记录",
+        "active_fees":active_fees,
+        'display_pages': display_pages,  # 去重后的表头
     })
-   
-def add_feesharing(request):
-    fee_records = models.fee_record.objects.all().order_by('-id')
-    if request.method=="GET":
-        form=feesharingmodel()
-        return render(request,"add_area.html",{"form":form,"titel":"添加分摊记录","fee_records":fee_records})
-    form=feesharingmodel(data=request.POST)
-    if form.is_valid():
-        # data=request.session.get('info')
-        # if data==None:
-        #     return HttpResponse("请先登录")
-        # name=data.get('name')
-        # logger.info('%s添加了部门'%(name))
-        form.save()
-        return redirect("/hostel/feesharing/")
-    return render(request,"add_area.html",{"form":form,"error":form.errors,"titel":"添加分摊记录","fee_records":fee_records})
+
 
 def del_feesharing(request,id):
-    row_object=models.feesharing.objects.filter(id=id).first()
+    row_object=models.sharing.objects.filter(id=id).first()
     if row_object==None:
         return HttpResponse("数据不存在")
     # data=request.session.get('info')
@@ -672,11 +413,11 @@ def del_feesharing(request,id):
     return redirect("/hostel/feesharing/?page={}".format(request.GET.get("page",1)))
 
 def edit_feesharing(request,id):
-    row_object=models.feesharing.objects.filter(id=id).first()
+    row_object=models.sharing.objects.filter(id=id).first()
     if row_object==None:
         return HttpResponse("要修改的数据不存在")
     if request.method=='GET':
-        titel="修改-{}".format(row_object.occupancyrecord)
+        titel="修改-{}".format(row_object.user)
         form=feesharingmodel(instance=row_object)
         return render(request,'add_area.html',{"form":form,"titel":titel})
     form=feesharingmodel(data=request.POST,instance=row_object)
@@ -800,6 +541,28 @@ def del_all_feesharing(request):#批量删除
         return redirect("/hostel/feesharing/")
     return redirect("/hostel/feesharing/")
 
+
+
+# views.py（只保留以下核心代码，删除其他冗余）
+from django.shortcuts import render, redirect, get_object_or_404
+from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
+from decimal import Decimal
+# from .models import fee_record_one, feetype, resource_useage, Room
+
+
+# 1. 费用记录列表页（含动态表头、搜索、分页）
+
+# 2. 新增费用记录（自动计算动态费用）
+
+
+# 3. 删除费用记录（单个删除）
+# def del_fee_record(request, id):
+#     # 获取要删除的记录，不存在则返回404
+#     record = get_object_or_404(fee_record_one, id=id)
+#     record.delete()
+#     # 删除后跳回列表页（保留当前页码）
+#     page = request.GET.get('page', 1)
+#     return redirect(f"/hostel/fee_record/?page={page}")
 
 
 

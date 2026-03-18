@@ -8,6 +8,7 @@ from hostel.bootstrap import BootStrapModelForm
 import logging
 from django.core.paginator import Paginator
 import io
+from django.contrib import messages
 
 
 class Backgroundmodel(BootStrapModelForm):
@@ -23,7 +24,7 @@ def upload_back(request):
             models.background.objects.update(is_img=False)
             new_bg=form.save(commit=False)
             new_bg.is_img=True
-            form.save()
+            new_bg.save()
             return redirect('/upload_back/')
     else:
         form=Backgroundmodel()
@@ -33,4 +34,25 @@ def upload_back(request):
         "active_bg":active_bg
     }
     return render(request,"upload_back.html",context)
+
+class Moneymodel(BootStrapModelForm):
+    bootstrap_exclude=["img"]
+    class Meta:
+        model=models.money_upload
+        fields=["name","img"]
+def money_upload(request):
+    
+    if request.method=="POST":
+        form=Moneymodel(request.POST,request.FILES)
+        if form.is_valid():
+            new_bg=form.save(commit=False)
+            new_bg.is_img=True
+            form.save()
+            messages.info(request,"提交成功！")
+            # return redirect("/miao/")
+        
+    else:
+        form=Moneymodel()
+    active_bg=models.money_upload.objects.filter(is_img=True).first()
+    return render(request,"add_money.html",{"form":form,"active_bg":active_bg})
 

@@ -1,31 +1,359 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>分页</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>宿舍资产智能绑定管理系统</title>
+  <!-- 引入依赖 -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <!-- 自定义Tailwind配置（调整为浅色系） -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#3b82f6', // 主色调（清新蓝）
+            secondary: '#10b981', // 辅助色（浅绿）
+            light: '#f8fafc',
+            card: '#ffffff',
+            border: '#e2e8f0',
+            text: '#1e293b',
+            textLight: '#64748b',
+          },
+          fontFamily: {
+            inter: ['Inter', 'system-ui', 'sans-serif'],
+          },
+        },
+      }
+    }
+  </script>
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .gradient-border {
+        position: relative;
+        border-radius: 0.75rem;
+      }
+      .gradient-border::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: 0.75rem;
+        padding: 1px;
+        background: linear-gradient(135deg, #3b82f6, #10b981);
+        -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+        pointer-events: none;
+      }
+      .asset-tag-hover {
+        transition: all 0.2s ease;
+      }
+      .asset-tag-hover:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+      }
+    }
+  </style>
 </head>
-<body>
-    {% for i in c_page%}
-    {{i}}
-    {%endfor%}
-    {% if c_page.has_previous %}
-    <a href="/test_page?pag={{c_page.previous_page_number}}">上一页</a>
-    {%else%}
-    上一页
-    {%endif%}
-{%for p_num in paginator.page_range %}
-{% if p_num == c_page.number %}
-{{p_num}}
-{%else%}
-<a href="/test_page?page = {{p_num}}">{{p_num}}</a>
-{%endif%}
-{%endfor%}
+<body class="bg-light min-h-screen font-inter text-text">
+  <!-- 顶部导航 -->
+  <nav class="bg-white backdrop-blur-md border-b border-primary/20 sticky top-0 z-50 shadow-sm">
+    <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+      <div class="flex items-center gap-2">
+        <i class="fa fa-building-o text-primary text-2xl"></i>
+        <h1 class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
+          宿舍资产智能绑定系统
+        </h1>
+      </div>
+      <div class="flex items-center gap-4">
+        <button class="px-3 py-1.5 rounded-full bg-primary/10 hover:bg-primary/20 transition-colors text-text">
+          <i class="fa fa-search mr-1"></i>搜索
+        </button>
+        <button class="px-3 py-1.5 rounded-full bg-secondary/10 hover:bg-secondary/20 transition-colors text-text">
+          <i class="fa fa-cog mr-1"></i>设置
+        </button>
+      </div>
+    </div>
+  </nav>
 
-    {%if c_page.has_next%}
-    <a href="/test_page?page = {{c_page.next_page_number}}">下一页</a>
-    {%else%}
-    下一页
-    {%endif%}
+  <!-- 主内容区 -->
+  <main class="container mx-auto px-4 py-8">
+    <!-- 统计卡片 -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div class="gradient-border bg-card p-5 shadow-sm">
+        <div class="flex justify-between items-center">
+          <div>
+            <p class="text-textLight text-sm">总宿舍数</p>
+            <h3 class="text-3xl font-bold mt-1">24</h3>
+          </div>
+          <div class="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
+            <i class="fa fa-home text-primary"></i>
+          </div>
+        </div>
+        <div class="mt-4 w-full bg-gray-200 h-1.5 rounded-full overflow-hidden">
+          <div class="bg-gradient-to-r from-primary to-secondary h-full rounded-full" style="width: 85%"></div>
+        </div>
+      </div>
+      
+      <div class="gradient-border bg-card p-5 shadow-sm">
+        <div class="flex justify-between items-center">
+          <div>
+            <p class="text-textLight text-sm">总资产数</p>
+            <h3 class="text-3xl font-bold mt-1">128</h3>
+          </div>
+          <div class="w-12 h-12 rounded-full bg-secondary/20 flex items-center justify-center">
+            <i class="fa fa-cubes text-secondary"></i>
+          </div>
+        </div>
+        <div class="mt-4 w-full bg-gray-200 h-1.5 rounded-full overflow-hidden">
+          <div class="bg-gradient-to-r from-secondary to-primary h-full rounded-full" style="width: 92%"></div>
+        </div>
+      </div>
+      
+      <div class="gradient-border bg-card p-5 shadow-sm">
+        <div class="flex justify-between items-center">
+          <div>
+            <p class="text-textLight text-sm">待绑定资产</p>
+            <h3 class="text-3xl font-bold mt-1">7</h3>
+          </div>
+          <div class="w-12 h-12 rounded-full bg-amber-500/20 flex items-center justify-center">
+            <i class="fa fa-exclamation-circle text-amber-500"></i>
+          </div>
+        </div>
+        <div class="mt-4 w-full bg-gray-200 h-1.5 rounded-full overflow-hidden">
+          <div class="bg-amber-500 h-full rounded-full" style="width: 15%"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 资产列表卡片 -->
+    <div class="gradient-border bg-card p-6 shadow-sm">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-xl font-semibold">宿舍资产绑定清单</h2>
+        <div class="flex gap-2">
+          <button class="px-3 py-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 transition-colors text-sm text-text">
+            <i class="fa fa-refresh mr-1"></i>刷新
+          </button>
+          <button class="px-3 py-1.5 rounded-lg bg-primary hover:bg-primary/90 transition-colors text-sm text-white">
+            <i class="fa fa-plus mr-1"></i>新增绑定
+          </button>
+        </div>
+      </div>
+
+      <!-- 表格 -->
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead>
+            <tr class="border-b border-border">
+              <th class="text-left py-4 px-2 text-textLight font-medium">宿舍号</th>
+              <th class="text-left py-4 px-2 text-textLight font-medium">绑定资产</th>
+              <th class="text-right py-4 px-2 text-textLight font-medium">操作</th>
+            </tr>
+          </thead>
+          <tbody id="dormAssetTable">
+            <!-- 示例数据行1 -->
+            <tr class="border-b border-gray-200 hover:bg-gray-50 transition-colors">
+              <td class="py-5 px-2">
+                <div class="flex items-center gap-2">
+                  <span class="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary">301</span>
+                  <span class="font-medium">301宿舍</span>
+                </div>
+              </td>
+              <td class="py-5 px-2">
+                <div class="flex flex-wrap gap-2">
+                  <span class="asset-tag-hover px-3 py-1.5 rounded-full bg-gray-100 text-sm flex items-center gap-1 text-text">
+                    <i class="fa fa-snowflake-o text-primary"></i>
+                    空调（ID:2003）
+                  </span>
+                  <span class="asset-tag-hover px-3 py-1.5 rounded-full bg-gray-100 text-sm flex items-center gap-1 text-text">
+                    <i class="fa fa-suitcase text-secondary"></i>
+                    衣柜×2
+                  </span>
+                  <span class="asset-tag-hover px-3 py-1.5 rounded-full bg-gray-100 text-sm flex items-center gap-1 text-text">
+                    <i class="fa fa-cutlery text-amber-500"></i>
+                    书桌×2
+                  </span>
+                  <span class="asset-tag-hover px-3 py-1.5 rounded-full bg-gray-100 text-sm flex items-center gap-1 text-text">
+                    <i class="fa fa-chair text-purple-500"></i>
+                    椅子×4
+                  </span>
+                </div>
+              </td>
+              <td class="py-5 px-2 text-right">
+                <button class="text-textLight hover:text-primary transition-colors mr-3">
+                  <i class="fa fa-eye"></i>
+                </button>
+                <button class="text-textLight hover:text-amber-500 transition-colors mr-3">
+                  <i class="fa fa-edit"></i>
+                </button>
+                <button class="text-textLight hover:text-red-500 transition-colors">
+                  <i class="fa fa-trash"></i>
+                </button>
+              </td>
+            </tr>
+
+            <!-- 示例数据行2 -->
+            <tr class="border-b border-gray-200 hover:bg-gray-50 transition-colors">
+              <td class="py-5 px-2">
+                <div class="flex items-center gap-2">
+                  <span class="w-8 h-8 rounded-full bg-secondary/20 flex items-center justify-center text-secondary">302</span>
+                  <span class="font-medium">302宿舍</span>
+                </div>
+              </td>
+              <td class="py-5 px-2">
+                <div class="flex flex-wrap gap-2">
+                  <span class="asset-tag-hover px-3 py-1.5 rounded-full bg-gray-100 text-sm flex items-center gap-1 text-text">
+                    <i class="fa fa-tint text-primary"></i>
+                    饮水机（ID:4001）
+                  </span>
+                  <span class="asset-tag-hover px-3 py-1.5 rounded-full bg-gray-100 text-sm flex items-center gap-1 text-text">
+                    <i class="fa fa-snowflake-o text-primary"></i>
+                    空调（ID:2004）
+                  </span>
+                  <span class="asset-tag-hover px-3 py-1.5 rounded-full bg-gray-100 text-sm flex items-center gap-1 text-text">
+                    <i class="fa fa-cutlery text-amber-500"></i>
+                    书桌×2
+                  </span>
+                </div>
+              </td>
+              <td class="py-5 px-2 text-right">
+                <button class="text-textLight hover:text-primary transition-colors mr-3">
+                  <i class="fa fa-eye"></i>
+                </button>
+                <button class="text-textLight hover:text-amber-500 transition-colors mr-3">
+                  <i class="fa fa-edit"></i>
+                </button>
+                <button class="text-textLight hover:text-red-500 transition-colors">
+                  <i class="fa fa-trash"></i>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 分页 -->
+      <div class="mt-6 flex justify-between items-center">
+        <p class="text-sm text-textLight">显示 1-10 条，共 24 条</p>
+        <div class="flex gap-1">
+          <button class="w-9 h-9 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors flex items-center justify-center disabled:opacity-50 text-text" disabled>
+            <i class="fa fa-chevron-left"></i>
+          </button>
+          <button class="w-9 h-9 rounded-lg bg-primary hover:bg-primary/90 transition-colors flex items-center justify-center text-white">1</button>
+          <button class="w-9 h-9 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors flex items-center justify-center text-text">2</button>
+          <button class="w-9 h-9 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors flex items-center justify-center text-text">3</button>
+          <button class="w-9 h-9 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors flex items-center justify-center text-text">
+            <i class="fa fa-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- 页脚 -->
+  <footer class="bg-white border-t border-border py-4 mt-12">
+    <div class="container mx-auto px-4 text-center text-textLight text-sm">
+      <p>© 2025 宿舍资产智能绑定管理系统 | 版权所有</p>
+    </div>
+  </footer>
+
+  <script>
+    // 动态渲染更多宿舍数据
+    const moreDormAssets = [
+      { 
+        dormNo: '303', 
+        assets: [
+          { name: '冰箱（ID:1002）', icon: 'fa fa-snowflake-o', color: 'text-primary' },
+          { name: '洗衣机（ID:3005）', icon: 'fa fa-tint', color: 'text-primary' },
+          { name: '书桌×2', icon: 'fa fa-cutlery', color: 'text-amber-500' },
+          { name: '椅子×4', icon: 'fa fa-chair', color: 'text-purple-500' }
+        ]
+      },
+      { 
+        dormNo: '304', 
+        assets: [
+          { name: '空调（ID:2005）', icon: 'fa fa-snowflake-o', color: 'text-primary' },
+          { name: '衣柜×2', icon: 'fa fa-suitcase', color: 'text-secondary' },
+          { name: '饮水机（ID:4002）', icon: 'fa fa-tint', color: 'text-primary' }
+        ]
+      }
+    ];
+
+    const tableBody = document.getElementById('dormAssetTable');
+    moreDormAssets.forEach(item => {
+      const row = document.createElement('tr');
+      row.className = 'border-b border-gray-200 hover:bg-gray-50 transition-colors';
+      
+      // 宿舍号单元格
+      const dormCell = `
+        <td class="py-5 px-2">
+          <div class="flex items-center gap-2">
+            <span class="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary">${item.dormNo}</span>
+            <span class="font-medium">${item.dormNo}宿舍</span>
+          </div>
+        </td>
+      `;
+
+      // 资产单元格
+      let assetHtml = '<td class="py-5 px-2"><div class="flex flex-wrap gap-2">';
+      item.assets.forEach(asset => {
+        assetHtml += `
+          <span class="asset-tag-hover px-3 py-1.5 rounded-full bg-gray-100 text-sm flex items-center gap-1 text-text">
+            <i class="${asset.icon} ${asset.color}"></i>
+            ${asset.name}
+          </span>
+        `;
+      });
+      assetHtml += '</div></td>';
+
+      // 操作单元格
+      const actionCell = `
+        <td class="py-5 px-2 text-right">
+          <button class="text-textLight hover:text-primary transition-colors mr-3">
+            <i class="fa fa-eye"></i>
+          </button>
+          <button class="text-textLight hover:text-amber-500 transition-colors mr-3">
+            <i class="fa fa-edit"></i>
+          </button>
+          <button class="text-textLight hover:text-red-500 transition-colors">
+            <i class="fa fa-trash"></i>
+          </button>
+        </td>
+      `;
+
+      row.innerHTML = dormCell + assetHtml + actionCell;
+      tableBody.appendChild(row);
+    });
+  </script>
 </body>
 </html>
+{% for room in rooms %}
+<div class="d-flex align-items-center justify-content-between p-3 mb-2 rounded" style="background:rgba(255,255,255,0.08);">
+    <div>
+        <span class="badge bg-primary fs-5 me-3">{{ room.room_name }}</span>
+        <strong class="text-white">{{ room.dorm.name }} {{ room.room_name }}宿舍</strong>
+    </div>
+
+    <div>
+        {% for item in room.category_stats %}
+            <span class="badge bg-info text-dark me-2">
+                {% if item.name == "空调" %}空调
+                {% elif item.name == "冰箱" %}冰箱
+                {% elif item.name == "洗衣机" %}洗衣机
+                {% elif item.name == '衣柜' %}衣柜
+                {% elif item.name == '书桌' %}书桌
+                {% elif item.name == '椅子' %}椅子
+                {% else %}其他 {{ item.name }}{% endif %}
+                {% if item.count > 1 %}×{{ item.count }}{% endif %}
+            </span>
+        {% endfor %}
+        {% if not room.category_stats %}
+            <span class="text-muted">暂无资产</span>
+        {% endif %}
+    </div>
+</div>
+{% endfor %}

@@ -124,10 +124,13 @@
       </div>
       <div class="ml-auto flex items-center gap-4">
         <div class="flex items-center gap-2">
+          
+          <span class="text-xs bg-white/10 px-2 py-1 rounded-full" style="width: 100px;height: 35px;text-align: center;line-height: 25px"><a href="/add_money/">上传缴费截图</a></span>   
           <span class="hidden md:inline">{{request.session.info.name}}</span>
           <span class="text-xs bg-white/10 px-2 py-1 rounded-full">{{room_dorm}}栋{{room_num}}室</span>
           <span class="text-xs bg-white/10 px-2 py-1 rounded-full"><a href="/user/logout/">退出登录</a></span>
           <span class="text-xs bg-white/10 px-2 py-1 rounded-full"><a href="/user/reset/">重置密码</a></span>
+         
         </div>
         <button class="p-2 rounded-full hover:bg-white/10 transition-colors">
           <i class="fa fa-bell-o"></i>
@@ -135,6 +138,13 @@
       </div>
     </div>
   </header>
+{% if message%}
+{%for message in message%}
+<div class="alert alert-{{ message.tags }} mt-3">
+                    {{ message }}
+                </div>
+              {%endfor%}
+{%endif%}
 
   <!-- 以下内容与之前的费用展示模板一致，可直接复用 -->
   <main class="container mx-auto px-4 py-6">

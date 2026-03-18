@@ -49,16 +49,20 @@ def checkout_occupancyrecord(request,id):
         new_peopel=form.save()
         room=new_peopel.room
         current_people=models.occupancyrecord.objects.filter(room=room,status='0').count()
+        
         room.people=current_people
-        related_people=int("".join(filter(str.isdigit,room.room_perpe)))
+        related_people=int(room.room_type.bed_count)
         if current_people<related_people:
-            room.room_status=models.room_status.objects.get(name="可住")
-            messages.success(request, f'退宿成功，当前房间入住人数为{current_people}，房间状态已更新为可住')
+            room.room_status=models.room_status.objects.get(name="正常")
+            messages.success(request, f'退宿成功，当前房间入住人数为{current_people}，房间状态已更新为正常')
             room.save()
         else:
             room.room_status=models.room_status.objects.get(name="住满")
             messages.success(request, f'退宿成功，当前房间入住人数为{current_people}，房间状态为已满')
             room.save()
+        person=row_object.user
+        person.room=None
+        person.save()
 
         logger.info(f"{request.session.get('info', {}).get('name')} 将 员工: {row_object.user}从 房间: {room.room_name}退宿")
         return redirect("/hostel/checkout_record/")

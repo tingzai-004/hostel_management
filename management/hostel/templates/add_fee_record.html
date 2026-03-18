@@ -1,0 +1,33 @@
+{% extends 'moban.html' %}
+{%block content%}
+<!-- add_fee_record.html 表单里加这行 -->
+<form method="post" class="mt-3">
+    {% csrf_token %}
+    
+    <!-- 显示所有验证错误（关键！） -->
+    {% if form.errors %}
+        <div class="alert alert-danger">
+            表单提交失败：{{ form.errors }}
+        </div>
+    {% endif %}
+
+    <!-- 下面的 room 和 date 字段不变 -->
+    <div class="mb-3">
+        {{ form.room.label_tag }}
+        {{ form.room }}
+        <!-- 显示单个字段的错误 -->
+        {% if form.room.errors %}
+            <div class="text-danger">{{ form.room.errors.0 }}</div>
+        {% endif %}
+    </div>
+    <div class="mb-3">
+        {{ form.date.label_tag }}
+        {{ form.date }}
+        {% if form.date.errors %}
+            <div class="text-danger">{{ form.date.errors.0 }}</div>
+        {% endif %}
+    </div>
+
+    <button type="submit" class="btn btn-primary">生成费用记录</button>
+</form>
+{%endblock%}

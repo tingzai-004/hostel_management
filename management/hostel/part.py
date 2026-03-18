@@ -17,6 +17,7 @@ from datetime import datetime
 import random
 import string
 from decimal import Decimal
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 logger=logging.getLogger("management")
 
@@ -101,104 +102,12 @@ def admin_reset(request):
     })
 
 from decimal import Decimal, ROUND_HALF_UP
+from django.shortcuts import render
+from datetime import datetime
+from decimal import Decimal
 ##报表
-def table(request):
-    
-    current_status=request.GET.get("current_status","")
-    current_month=request.GET.get("current_month","")
-    current_area=request.GET.get("current_area","")
-    current_fee_type=request.GET.get("current_fee_type","")
-    power=models.fee_record.objects.filter(feetype="4").aggregate(power=Sum("amount"))["power"]or 0
-    water=models.fee_record.objects.filter(feetype="3").aggregate(power=Sum("amount"))["power"]or 0
-    cold=models.fee_record.objects.filter(feetype="2").aggregate(power=Sum("amount"))["power"]or 0
-    home=models.fee_record.objects.filter(feetype="1").aggregate(power=Sum("amount"))["power"]or 0
-    
-    
- # 2. 基础查询：获取feesharing的所有数据（确认有数据）
-    fees = models.feesharing.objects.all()
-    print("原始数据量：", fees.count())  # 控制台看是否有数据（比如输出10）
+# ====================== 终极正确版：宿舍费用统计报表 ======================
 
-    # 3. 筛选逻辑（逐个排查，先只开一个筛选测试）
-    # 状态筛选（0=未缴，1=已缴）
-    if current_status in ["0", "1"]:  # 只接受有效状态值
-        fees = fees.filter(status=current_status)
-        print(f"状态筛选后数据量：{fees.count()}")  # 看是否有数据
-
-    # 费用类型筛选（外键ID）
-    if current_fee_type.isdigit():  # 确保是数字ID
-        fees = fees.filter(fee_type_id=current_fee_type)
-        print(f"类型筛选后数据量：{fees.count()}")
-
-    if current_month:
-        try:
-            year, month = current_month.split("年")
-            month = month.replace("月", "").zfill(2)
-            month_str = f"{year}-{month}"
-            fees = fees.filter(end_date__startswith=month_str)
-            print(f"月份筛选后数据量：{fees.count()}")
-        except:
-            pass  # 格式错误时不筛选
-
-
-
-    # 4. 分页（无论如何，form必须有值）
-    paginator = Paginator(fees, 10)
-    page = request.GET.get('page', 1)
-    form = paginator.get_page(page)  # 即使筛选后无数据，form也会有分页对象
-    print(f"最终分页后的数据量：{form.object_list.count()}")  # 看是否有数据
-
-    # 5. 其他统计数据（保持不变）
-    total1_sum = models.fee_record.objects.aggregate(total=Sum("amount"))["total"]
-    # 处理空值 + 强制转为 Decimal
-    total1 = Decimal(str(total1_sum)) if total1_sum is not None else Decimal("0")
-    # 保留2位小数
-    total1 = total1.quantize(Decimal("0.00"), rounding=ROUND_HALF_UP)
-
-    # 2. 已收费用（同上处理）
-    total_count_sum = models.feesharing.objects.filter(status=1).aggregate(total=Sum("feesharings"))["total"]
-    total_count = Decimal(str(total_count_sum)) if total_count_sum is not None else Decimal("0")
-    total_count = total_count.quantize(Decimal("0.00"), rounding=ROUND_HALF_UP)
-
-    # 3. 未收费用（同上处理）
-    total_not_sum = models.feesharing.objects.filter(status=0).aggregate(total=Sum("feesharings"))["total"]
-    total_not = Decimal(str(total_not_sum)) if total_not_sum is not None else Decimal("0")
-    total_not = total_not.quantize(Decimal("0.00"), rounding=ROUND_HALF_UP)
-
-    # 4. 计算百分比（彻底用 float 处理，避免 Decimal 除法问题）
-    total1_float = float(total1)  # 转为 float
-    rate = round((float(total_count) / total1_float) * 100, 2) if total1_float != 0 else 0.0
-    rate_2 = round((float(total_not) / total1_float) * 100, 2) if total1_float != 0 else 0.0
-
-    people = models.Room.objects.aggregate(people=Sum("people"))["people"] or Decimal ("0")
-    room_sum = models.Room.objects.aggregate(room_sum=Count("id"))["room_sum"] or Decimal ("0")
-   
-
-# 计算概率（带异常处理）
-   
-    
-    # 6. 上下文：传给前端的是筛选+分页后的form
-    context = {
-        "total1": total1,
-        "total_count": total_count,
-        "total_not": total_not,
-        "people": people,
-        "room_sum": room_sum,
-        "rate": rate,
-        "rate_2": rate_2,
-        "form": form,  # 用筛选后的分页数据
-        "paginator": paginator,
-        
-        "current_status": current_status,
-        "current_month": current_month,
-        "current_area": current_area,
-        "current_fee_type": current_fee_type,
-        "power":power,
-        "water":water,
-        "home":home,
-        "cold":cold,
-    }
-    
-    return render(request, "table.html", context)
         
     
 class Usermodel(BootStrapModelForm):
@@ -276,6 +185,138 @@ def peint(request):
     
 def table2(request):
     return render(request,"table2.html")
+
+
+def table(request):
+    from datetime import datetime
+    from decimal import Decimal
+    from django.db.models import Sum
+
+    # 1. 获取用户选择的月份（没选就用当前月）
+    month_str = request.GET.get('month')
+    if month_str and len(month_str) == 7:  # 2025-10
+        year, month = map(int, month_str.split('-'))
+        print(year,month)
+    else:
+        today = datetime.today()
+        year, month = today.year, today.month
+
+    current_month = datetime(year, month, 1)
+
+    # 2. 【重点】计算当月每个启用费用类型的总金额（水电房空调全对！）
+    active_fees = []
+    fee_types = models.feetype.objects.filter(status="启用").order_by('id')
+    sharing_one= models.sharing.objects.filter(fee_record__date__year=year, date__month=month)
+    room_fee=sharing_one.aggregate(total=Sum("room_fee"))["total"] or Decimal('0.00')
+    room_fee=Decimal(room_fee)
+    yuan_money=sharing_one.aggregate(total=Sum("yuan_money"))["total"] or Decimal('0.00')
+    yuan_money=Decimal(yuan_money)
+    ketizu_money=sharing_one.aggregate(total=Sum("ketizu_money"))["total"] or Decimal('0.00')
+    ketizu_money=Decimal(ketizu_money)
+
+
+    # 当月所有费用记录
+    monthly_records = models.fee_record_one.objects.filter(
+        date__year=year,
+        date__month=month
+    ).select_related('room__dorm__area')
+
+    for ft in fee_types:
+        total = Decimal('0.00')
+        room_count = 0
+
+        
+        for rec in monthly_records:
+                if not rec.room or not rec.room.dorm:
+                    continue
+                # 如果费用类型绑定了区域，只算该区域
+                if ft.area and rec.room.dorm.area != ft.area:
+                    continue
+                amount = Decimal(rec.dynamic_fees.get(ft.name, '0'))
+                if amount > 0:
+                    total += amount
+                    room_count += 1
+
+        active_fees.append({
+            'name': ft.name,
+            'amount': total.quantize(Decimal('0.00')),
+            'room_count': room_count,
+        })
+
+    # 3. 其他统计数据（总费用、已收、未收、住宿人数等）
+    all_records = models.fee_record_one.objects.filter(date__year=year, date__month=month)
+    
+    total1 = all_records.aggregate(t=Sum('amount'))['t'] or Decimal('0')
+    paid = all_records.filter(status='1').aggregate(t=Sum('amount'))['t'] or Decimal('0')
+    unpaid = all_records.filter(status='0').aggregate(t=Sum('amount'))['t'] or Decimal('0')
+
+    total1 = total1.quantize(Decimal('0.00'))
+    paid = paid.quantize(Decimal('0.00'))
+    unpaid = unpaid.quantize(Decimal('0.00'))
+
+    rate = round(float(paid) / float(total1) * 100, 2) if total1 > 0 else 0
+    rate_2 = round(float(unpaid) / float(total1) * 100, 2) if total1 > 0 else 0
+
+    people = models.Room.objects.aggregate(p=Sum('people'))['p'] or 0
+    room_sum = models.Room.objects.count()
+
+    # 4. 费用分摊明细表格（原来的 sharing 数据）
+    queryset = models.sharing.objects.select_related(
+    'user', 'fee_record', 'fee_record__room', 'fee_record__room__dorm'
+).order_by('-id')
+
+    # 状态筛选（房间状态？缴费状态？这里按您模板写的是房间状态）
+    room_id = request.GET.get('current_rooms')  # 您模板里 name="status"，但其实是房间ID
+    if room_id and room_id.isdigit():
+        queryset = queryset.filter(fee_record__room_id=room_id)
+
+    paginator = Paginator(queryset, 5)
+    page_number = request.GET.get('page')
+    form = paginator.get_page(page_number)
+    current = form.number
+    total_pages = paginator.num_pages
+
+    # 核心算法：始终显示当前页前后各1页，共3个（边界处理）
+    if total_pages <= 3:
+        display_pages = list(range(1, total_pages + 1))
+    else:
+        if current <= 2:
+            display_pages = [1, 2, 3]
+        elif current >= total_pages - 1:
+            display_pages = [total_pages - 2, total_pages - 1, total_pages]
+        else:
+            display_pages = [current - 1, current, current + 1]
+    try:
+        c_page = paginator.page(page_number)
+    except PageNotAnInteger:
+        c_page = paginator.page(1)
+    except EmptyPage:
+        c_page = paginator.page(paginator.num_pages)
+    
+  
+
+    # 5. 上下文传给模板
+    context = {
+        'active_fees': active_fees,
+        'current_month': current_month,
+        'room_fee' : room_fee,
+        'yuan_money': yuan_money,
+        'ketizu_money': ketizu_money,
+        'total1': total1,
+        'total_count': paid,
+        'total_not': unpaid,
+        'rate': rate,
+        'rate_2': rate_2,
+        'people': int(people),
+        'room_sum': room_sum,
+        'c_page': c_page,
+        'current': current,
+        'display_pages': display_pages,
+        'form': form,
+        'paginator': paginator,
+        'rooms':models.Room.objects.all().order_by('room_name')  }
+
+    return render(request, "table.html", context)
 
 
     

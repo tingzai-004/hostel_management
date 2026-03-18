@@ -36,18 +36,31 @@
                             
                         </thead>
                         <tbody>
-                            {% for i in c_page%}
-                            <tr>
-                                <td>{{i.id}}</td>  
-                                <td>{{i.room}}</td> 
-                                <td>{{i.feetype}}</td>                
-                               
-                                <td>
-                                     <a href="/hostel/edit_standard/{{i.id}}/"class="btn btn-edit btn-sm">编辑</a>
-                                    <a href="/hostel/del_standard/{{i.id}}/?page={{c_page.number}}" class="btn btn-delete btn-sm ms-2">删除</a>
-                                </td>
-                            </tr>
-                            {% endfor %}
+                            <tbody>
+     {% for item in c_page %}
+                <tr>
+                    <!-- 序号：分页起始索引 + 循环索引（确保连续） -->
+                    <td>{{ c_page.start_index|add:forloop.counter0 }}</td>
+                    <!-- 房间号：渲染手动聚合后的 room__name -->
+                    <td>{{ item.room__name }}</td>
+                    <!-- 费用类型：渲染聚合后的 fee_types，空值显示“无” -->
+                    <td>{{ item.fee_types|default:"无" }}</td>
+                    <!-- 操作按钮：传递房间ID（room__id）用于编辑/删除 -->
+                    <td>
+                        <a href="/hostel/edit_standard/?room_id={{ item.room__id }}" class="btn btn-outline-primary btn-sm me-1"><i class="fas fa-edit"></i> 编辑</a>
+                        <a href="/hostel/del_standard/?room_id={{ item.room__id }}&page={{ c_page.number }}" 
+                           class="btn btn-outline-danger btn-sm" 
+                                
+                           onclick="return confirm('确定要删除该房间的费用类型吗？')"><i class="fas fa-trash-alt"></i>删除</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <!-- 无数据时显示 -->
+                <tr>
+                    <td colspan="4" class="text-center py-3 text-muted">暂无匹配的房间费用数据</td>
+                </tr>
+                {% endfor %}
+</tbody>
                         </tbody>
                     </table>
                     <!-- 分页 -->
